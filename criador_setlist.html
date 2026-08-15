@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html class="light" lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="setlist_title">Repertório de Músicas</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+
+    <!-- Tailwind CSS & Config -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-lowest": "#ffffff",
+                    "on-background": "#1c1c19",
+                    "on-secondary-container": "#716252",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-fixed-dim": "#cec5bc",
+                    "inverse-on-surface": "#f3f0eb",
+                    "secondary-container": "#f4dfcb",
+                    "primary-fixed-dim": "#d8c3b2",
+                    "on-error": "#ffffff",
+                    "surface-container-high": "#ebe8e3",
+                    "error": "#ba1a1a",
+                    "tertiary-fixed": "#ebe1d8",
+                    "surface-container": "#f0ede9",
+                    "on-tertiary-container": "#fffbff",
+                    "on-surface": "#1c1c19",
+                    "primary-container": "#837163",
+                    "on-secondary-fixed": "#241a0e",
+                    "on-secondary": "#ffffff",
+                    "on-tertiary-fixed": "#1f1b16",
+                    "tertiary-container": "#7a736c",
+                    "secondary-fixed": "#f4dfcb",
+                    "on-tertiary-fixed-variant": "#4c463f",
+                    "surface-bright": "#fcf9f4",
+                    "surface-container-low": "#f6f3ee",
+                    "secondary": "#6b5c4c",
+                    "on-primary-fixed": "#25190f",
+                    "inverse-surface": "#31302d",
+                    "on-primary-fixed-variant": "#534437",
+                    "on-secondary-fixed-variant": "#524436",
+                    "outline": "#7f756e",
+                    "on-surface-variant": "#4e453f",
+                    "on-error-container": "#93000a",
+                    "surface-tint": "#6c5b4d",
+                    "outline-variant": "#d1c4bb",
+                    "background": "#fcf9f4",
+                    "primary": "#69594b",
+                    "primary-fixed": "#f5decd",
+                    "tertiary": "#615b54",
+                    "on-primary-container": "#fffbff",
+                    "secondary-fixed-dim": "#d7c3b0",
+                    "surface-dim": "#dcdad5",
+                    "surface-variant": "#e5e2dd",
+                    "error-container": "#ffdad6",
+                    "surface-container-highest": "#e5e2dd",
+                    "surface": "#fcf9f4",
+                    "inverse-primary": "#d8c3b2",
+                    "on-primary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "stack-md": "32px",
+                    "margin-mobile": "16px",
+                    "stack-lg": "80px",
+                    "container-max": "1200px",
+                    "stack-sm": "12px",
+                    "gutter": "24px",
+                    "margin-desktop": "64px",
+                    "unit": "8px"
+            },
+            "fontFamily": {
+                    "label-sm": ["JetBrains Mono"],
+                    "display-lg": ["JetBrains Mono"],
+                    "body-lg": ["Manrope"],
+                    "body-md": ["Manrope"],
+                    "display-lg-mobile": ["JetBrains Mono"],
+                    "headline-md": ["JetBrains Mono"]
+            },
+            "fontSize": {
+                    "label-sm": ["12px", { "lineHeight": "1.0", "fontWeight": "500" }],
+                    "display-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                    "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                    "body-md": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                    "display-lg-mobile": ["32px", { "lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+                    "headline-md": ["24px", { "lineHeight": "1.4", "fontWeight": "500" }]
+            }
+          },
+        },
+      }
+    </script>
+    <style>
+        .tab-active {
+            background-color: #69594b; /* primary */
+            color: #ffffff;
+            border-color: #69594b;
+        }
+        .tab-inactive {
+            background-color: #f0ede9; /* surface-container */
+            color: #4e453f; /* on-surface-variant */
+            border-color: #d1c4bb; /* outline-variant */
+        }
+        .tab-inactive:hover {
+            background-color: #e5e2dd; /* surface-variant */
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background dark:bg-[#121210] text-on-background dark:text-[#fcf9f4] font-body-md antialiased selection:bg-secondary-container selection:text-on-secondary-container min-h-screen py-4 sm:py-10 px-3 sm:px-6 lg:px-8 transition-colors duration-300">
+    
+    <div class="max-w-[1200px] mx-auto">
+        
+        <!-- Cabeçalho -->
+        <header class="mb-6 sm:mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-secondary/20 pb-6">
+            <div>
+                <h1 class="text-xl sm:text-2xl font-display-lg font-bold tracking-tight text-primary dark:text-[#fcf9f4]" data-i18n="setlist_title">Repertório de Músicas</h1>
+                <p class="mt-1 text-xs sm:text-sm text-on-surface-variant dark:text-[#d1c4bb] font-body-md" data-i18n="setlist_subtitle">Ministério de Louvor, I.E.Q. Família Esperança e Vida</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-3 w-full md:w-auto justify-between md:justify-end">
+                <div class="flex items-center gap-2">
+                    <!-- Language Selector -->
+                    <div class="flex items-center border border-secondary/30 dark:border-secondary/50 rounded overflow-hidden text-xs font-label-sm">
+                        <button id="lang-pt-btn" class="px-2.5 py-1.5 font-bold transition-all" aria-label="Português">PT</button>
+                        <button id="lang-en-btn" class="px-2.5 py-1.5 font-bold transition-all" aria-label="English">EN</button>
+                    </div>
+
+                    <!-- Theme Toggle -->
+                    <button id="theme-toggle" class="p-2 rounded text-primary dark:text-inverse-primary hover:bg-secondary/10 transition-colors" aria-label="Alternar Tema">
+                        <span class="material-symbols-outlined block dark:hidden">dark_mode</span>
+                        <span class="material-symbols-outlined hidden dark:block">light_mode</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <button id="btn-open-playlist" class="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2 bg-primary text-on-primary font-label-sm font-medium hover:bg-primary-container hover:text-on-primary-container rounded transition-colors shadow-sm">
+                        <span class="material-symbols-outlined">add</span>
+                        <span data-i18n="new_setlist">Novo Setlist</span>
+                    </button>
+
+                    <div class="relative w-full sm:w-72 shrink-0">
+                        <input type="text" id="search-input" data-i18n-placeholder="search_placeholder" placeholder="Buscar cantor ou música..." class="w-full pl-10 pr-4 py-2 bg-surface-bright dark:bg-[#121210] border border-secondary/30 rounded focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary text-sm shadow-sm transition-shadow text-primary dark:text-[#fcf9f4]">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-on-surface-variant">
+                            <span class="material-symbols-outlined text-sm">search</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Controles de Filtro (Dropdown A-Z) -->
+        <div id="controls-container" class="hidden mb-6">
+            <div class="w-full sm:w-64">
+                <label for="alphabet-select" class="block font-label-sm text-xs text-primary dark:text-[#fcf9f4] mb-1 uppercase tracking-wider" data-i18n="filter_label">Filtrar por letra:</label>
+                <select id="alphabet-select" class="w-full pl-3 pr-10 py-2.5 text-sm bg-surface-bright dark:bg-[#121210] border border-secondary/30 focus:ring-1 focus:ring-primary focus:border-primary rounded shadow-sm text-primary dark:text-[#fcf9f4]">
+                </select>
+            </div>
+        </div>
+
+        <!-- Indicador de Loading -->
+        <div id="loading" class="flex justify-center items-center py-20">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+        </div>
+        <div id="error" class="hidden bg-error-container border-l-4 border-error p-4 rounded mb-6 shadow-sm">
+            <p class="text-on-error-container text-sm font-medium" id="error-message"></p>
+        </div>
+
+        <!-- Lista Principal -->
+        <div id="list-container" class="hidden w-full">
+            <div class="w-full bg-surface-container-lowest dark:bg-inverse-surface border border-secondary/20 rounded shadow-sm overflow-hidden">
+                <div class="hidden sm:flex items-center py-3 px-4 bg-surface-container dark:bg-[#121210] border-b border-secondary/20 text-xs font-label-sm font-semibold text-primary dark:text-[#fcf9f4] uppercase tracking-wider gap-4">
+                    <div class="w-8 shrink-0 text-center">#</div>
+                    <div class="w-10 shrink-0" data-i18n="col_img">Img</div>
+                    <div class="w-1/3 shrink-0" data-i18n="col_artist">Cantor</div>
+                    <div class="flex-1 min-w-0" data-i18n="col_song">Música</div>
+                    <div class="w-20 shrink-0 text-center" data-i18n="col_time">Tempo</div>
+                    <div class="w-20 shrink-0 text-right" data-i18n="col_actions">Ações</div>
+                </div>
+
+                <ul id="audio-list" class="divide-y divide-secondary/10 flex flex-col">
+                </ul>
+            </div>
+
+            <!-- Paginação -->
+            <footer id="pagination-footer" class="mt-6 flex items-center justify-between bg-surface-container-lowest dark:bg-inverse-surface px-4 py-3 border border-secondary/20 rounded shadow-sm text-sm">
+                <button id="btn-prev-page" disabled class="px-4 py-2 border border-secondary/30 rounded text-sm font-label-sm font-medium text-primary dark:text-[#fcf9f4] bg-surface dark:bg-[#121210] hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed transition-colors" data-i18n="btn_prev">
+                    &larr; Anterior
+                </button>
+                <span id="page-indicator" class="font-label-sm font-semibold text-primary dark:text-[#fcf9f4] text-xs sm:text-sm">
+                    Página 1
+                </span>
+                <button id="btn-next-page" disabled class="px-4 py-2 border border-secondary/30 rounded text-sm font-label-sm font-medium text-primary dark:text-[#fcf9f4] bg-surface dark:bg-[#121210] hover:bg-surface-container disabled:opacity-40 disabled:cursor-not-allowed transition-colors" data-i18n="btn_next">
+                    Próxima &rarr;
+                </button>
+            </footer>
+        </div>
+
+        <!-- Estado Vazio -->
+        <div id="empty-state" class="hidden py-12 text-center text-on-surface-variant bg-surface-container-lowest dark:bg-inverse-surface border border-secondary/20 rounded shadow-sm mt-4">
+            <span class="material-symbols-outlined text-4xl mb-3 text-secondary/60">music_off</span>
+            <p class="text-lg font-display-lg text-primary dark:text-[#fcf9f4]" data-i18n="empty_title">Nenhum áudio encontrado</p>
+            <p class="text-sm mt-1 font-body-md" data-i18n="empty_desc">Tente buscar por outro termo ou limpe o filtro.</p>
+        </div>
+
+    </div>
+
+    <!-- MODAL DE SETLIST -->
+    <div id="playlist-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-4">
+        <div class="bg-surface-bright dark:bg-inverse-surface rounded border border-secondary/30 shadow-xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden">
+            
+            <div class="px-4 py-3 sm:px-6 sm:py-4 border-b border-secondary/20 flex items-center justify-between bg-surface-container dark:bg-[#121210]">
+                <h3 id="modal-title" class="text-base sm:text-lg font-display-lg font-bold text-primary dark:text-[#fcf9f4]" data-i18n="modal_build">Montar Setlist</h3>
+                <button id="btn-close-modal" class="text-on-surface-variant hover:text-primary p-1 rounded-lg">
+                    <span class="material-symbols-outlined">close</span>
+                </button>
+            </div>
+
+            <!-- ETAPA 1 -->
+            <div id="modal-step-1" class="flex-1 flex flex-col overflow-hidden">
+                <div class="p-3 sm:p-4 border-b border-secondary/20 bg-surface-container-low dark:bg-[#121210]/50 space-y-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label for="setlist-date" class="block font-label-sm text-xs text-primary dark:text-[#fcf9f4] mb-1" data-i18n="modal_date">Data do Setlist*</label>
+                            <input type="date" id="setlist-date" class="w-full px-3 py-2 bg-surface-bright dark:bg-[#121210] border border-secondary/30 rounded text-xs sm:text-sm focus:ring-1 focus:ring-primary focus:border-primary text-primary dark:text-[#fcf9f4]">
+                        </div>
+                        <div id="sunday-shift-container" class="hidden">
+                            <label for="sunday-shift" class="block font-label-sm text-xs text-primary dark:text-[#fcf9f4] mb-1" data-i18n="modal_period">Período (Domingo)*</label>
+                            <select id="sunday-shift" class="w-full px-3 py-2 bg-surface-bright dark:bg-[#121210] border border-secondary/30 rounded text-xs sm:text-sm focus:ring-1 focus:ring-primary focus:border-primary text-primary dark:text-[#fcf9f4]">
+                                <option value="Manhã" data-i18n="period_morning">Manhã</option>
+                                <option value="Noite" data-i18n="period_night">Noite</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <input type="text" id="modal-search-input" data-i18n-placeholder="filter_songs" placeholder="Filtrar músicas..." class="w-full px-3 py-2 bg-surface-bright dark:bg-[#121210] border border-secondary/30 rounded text-xs sm:text-sm focus:ring-1 focus:ring-primary focus:border-primary text-primary dark:text-[#fcf9f4]">
+                </div>
+
+                <div class="flex-1 overflow-y-auto p-3 sm:p-4 divide-y divide-secondary/10" id="modal-songs-list">
+                </div>
+
+                <div class="px-4 py-3 sm:px-6 sm:py-4 border-t border-secondary/20 bg-surface-container-low dark:bg-[#121210]/50 flex items-center justify-between gap-3">
+                    <span id="selected-count" class="text-xs sm:text-sm font-label-sm font-semibold text-primary dark:text-[#fcf9f4]">0 selecionadas</span>
+                    <div class="flex items-center gap-2">
+                        <button id="btn-cancel-modal" class="px-3 py-2 text-xs sm:text-sm font-label-sm font-medium text-primary dark:text-[#fcf9f4] hover:bg-surface-container rounded transition-colors" data-i18n="cancel">Cancelar</button>
+                        <button id="btn-go-to-step2" disabled class="px-4 py-2 text-xs sm:text-sm font-label-sm font-medium text-on-primary bg-primary hover:bg-primary-container rounded transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed" data-i18n="btn_review_setlist">
+                            Conferir Setlist &rarr;
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ETAPA 2 -->
+            <div id="modal-step-2" class="hidden flex-1 flex flex-col overflow-hidden">
+                <div class="p-4 flex-1 flex flex-col overflow-hidden space-y-3">
+                    <div class="p-3 bg-secondary-container dark:bg-primary-container/20 border border-secondary/30 rounded text-xs sm:text-sm text-on-secondary-container dark:text-[#fcf9f4]">
+                        <p><strong>Data:</strong> <span id="review-date-text"></span></p>
+                        <p id="review-shift-wrapper" class="hidden"><strong>Período:</strong> <span id="review-shift-text"></span></p>
+                    </div>
+
+                    <label class="block text-xs font-label-sm text-primary dark:text-[#fcf9f4] uppercase" data-i18n="modal_review">Pré-visualização do envio:</label>
+                    <div id="review-message-preview" class="flex-1 overflow-y-auto p-3 bg-surface-container dark:bg-[#121210] border border-secondary/20 rounded font-mono text-xs whitespace-pre-wrap text-primary dark:text-[#fcf9f4]">
+                    </div>
+                </div>
+
+                <div class="px-4 py-3 sm:px-6 sm:py-4 border-t border-secondary/20 bg-surface-container-low dark:bg-[#121210]/50 flex items-center justify-between gap-3">
+                    <button id="btn-back-to-step1" class="px-3 py-2 text-xs sm:text-sm font-label-sm font-medium text-primary dark:text-[#fcf9f4] hover:bg-surface-container rounded transition-colors" data-i18n="back">&larr; Voltar</button>
+                    <button id="btn-send-whatsapp" class="flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-label-sm font-medium text-white bg-green-700 hover:bg-green-800 rounded transition-colors shadow-sm">
+                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
+                        </svg>
+                        <span data-i18n="btn_send_whatsapp">OK / Enviar no WhatsApp</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Script module that loads translator class decoupled -->
+    <script type="module">
+        import { Translator } from './src/i18n/translator.js';
+        import { LocalTranslationAdapter } from './src/i18n/adapters/local-translation.adapter.js';
+        import { sortRawDriveFiles } from './src/utils/audio-sorter.js';
+
+        const translationService = new LocalTranslationAdapter();
+        const translator = new Translator(translationService);
+        translator.init();
+
+        // Listen for language changes to update internal dynamic rendering
+        translator.onLanguageChange(() => {
+            renderTabsAndSelect();
+            updatePaginationControls();
+            updateStep1Footer();
+            renderList();
+        });
+
+        const API_KEY = import.meta.env?.VITE_API_KEY || 'AIzaSyD-WBcFFDuF3gtvonCn4KHAOgHYf9p1qsk'; 
+        const FOLDER_ID = '1rs-JyMfdMpdwPNCrHEzF85W3pDGcye99'; 
+        const DOCS_FOLDER_ID = '1-c8JlX8Agow-0ZPTo9nTjQnJG8BPRfXA'; 
+        const PAGE_SIZE = 10;
+
+        // Elementos DOM
+        const loadingEl = document.getElementById('loading');
+        const errorEl = document.getElementById('error');
+        const errorMessageEl = document.getElementById('error-message');
+        const listContainerEl = document.getElementById('list-container');
+        const audioListEl = document.getElementById('audio-list');
+        const controlsContainerEl = document.getElementById('controls-container');
+        const alphabetSelectEl = document.getElementById('alphabet-select');
+        const searchInputEl = document.getElementById('search-input');
+        const emptyStateEl = document.getElementById('empty-state');
+
+        // Elementos de Paginação
+        const btnPrevPage = document.getElementById('btn-prev-page');
+        const btnNextPage = document.getElementById('btn-next-page');
+        const pageIndicator = document.getElementById('page-indicator');
+
+        // Modal
+        const playlistModalEl = document.getElementById('playlist-modal');
+        const modalTitleEl = document.getElementById('modal-title');
+        const btnOpenPlaylist = document.getElementById('btn-open-playlist');
+        const btnCloseModal = document.getElementById('btn-close-modal');
+        const btnCancelModal = document.getElementById('btn-cancel-modal');
+        const modalSongsListEl = document.getElementById('modal-songs-list');
+        const modalSearchInput = document.getElementById('modal-search-input');
+        const selectedCountEl = document.getElementById('selected-count');
+
+        // Etapas
+        const modalStep1 = document.getElementById('modal-step-1');
+        const modalStep2 = document.getElementById('modal-step-2');
+        const btnGoToStep2 = document.getElementById('btn-go-to-step2');
+        const btnBackToStep1 = document.getElementById('btn-back-to-step1');
+        const btnSendWhatsapp = document.getElementById('btn-send-whatsapp');
+
+        // Data / Domingo
+        const setlistDateInput = document.getElementById('setlist-date');
+        const sundayShiftContainer = document.getElementById('sunday-shift-container');
+        const sundayShiftSelect = document.getElementById('sunday-shift');
+        const reviewDateText = document.getElementById('review-date-text');
+        const reviewShiftWrapper = document.getElementById('review-shift-wrapper');
+        const reviewShiftText = document.getElementById('review-shift-text');
+        const reviewMessagePreview = document.getElementById('review-message-preview');
+
+        // Estado
+        let allFiles = []; 
+        let currentFilter = 'Todos';
+        let searchQuery = '';
+        let selectedSongsSet = new Set();
+        let formattedFinalMessage = '';
+
+        let pageTokenStack = [null];
+        let currentPageIndex = 0;
+        let nextPageToken = null;
+        let docsMap = new Map();
+
+        // CONTROLE DA FILA SEQUENCIAL
+        let durationQueue = [];
+        let isProcessingQueue = false;
+
+        const alphabet = ['Todos', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+
+        // ==========================================
+        // LÓGICA DE TEMA (SINCRONIZADO)
+        // ==========================================
+        const themeToggleBtn = document.getElementById('theme-toggle');
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                document.documentElement.classList.remove('light');
+            } else {
+                document.documentElement.classList.add('light');
+                document.documentElement.classList.remove('dark');
+            }
+            localStorage.setItem('theme', theme);
+        }
+
+        if (themeToggleBtn) {
+            themeToggleBtn.addEventListener('click', () => {
+                const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+                applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+            });
+        }
+
+        // Init theme
+        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        applyTheme(savedTheme);
+
+        // ==========================================
+        // LÓGICA PRINCIPAL DO DRIVE E SEQUENCIA
+        // ==========================================
+        function strictNormalize(str) {
+            if (!str) return '';
+            return str
+                .replace(/\.(mp3|docx?|txt|gdoc|pdf)$/i, '')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-zA-Z0-9]/g, '')
+                .toLowerCase();
+        }
+
+        function formatSeconds(totalSeconds) {
+            if (!totalSeconds || isNaN(totalSeconds) || totalSeconds === Infinity) return null;
+            const secs = Math.floor(totalSeconds);
+            const minutes = Math.floor(secs / 60);
+            const seconds = secs % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        async function processDurationQueue() {
+            if (isProcessingQueue || durationQueue.length === 0) return;
+            isProcessingQueue = true;
+
+            while (durationQueue.length > 0) {
+                const fileId = durationQueue.shift();
+                
+                try {
+                    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${API_KEY}`);
+                    
+                    if (res.ok) {
+                        const blob = await res.blob();
+                        const objectUrl = URL.createObjectURL(blob);
+                        
+                        await new Promise((resolve) => {
+                            const audio = new Audio();
+                            audio.src = objectUrl;
+                            
+                            audio.onloadedmetadata = () => {
+                                const formatted = formatSeconds(audio.duration);
+                                if (formatted) {
+                                    const item = allFiles.find(f => f.id === fileId);
+                                    if (item) item.duration = formatted;
+
+                                    const desktopEl = document.getElementById(`duration-desktop-${fileId}`);
+                                    if (desktopEl) desktopEl.textContent = formatted;
+
+                                    const mobileEl = document.getElementById(`duration-mobile-${fileId}`);
+                                    if (mobileEl) mobileEl.textContent = formatted;
+
+                                    const modalEl = document.getElementById(`duration-modal-${fileId}`);
+                                    if (modalEl) modalEl.textContent = formatted;
+                                }
+                                URL.revokeObjectURL(objectUrl);
+                                resolve();
+                            };
+
+                            audio.onerror = () => {
+                                URL.revokeObjectURL(objectUrl);
+                                resolve();
+                            };
+                        });
+                    }
+                } catch (err) {
+                    console.warn(`Erro na fila de minutagem para ${fileId}`, err);
+                }
+            }
+            
+            isProcessingQueue = false;
+        }
+
+        function queueDurationFallback(fileId) {
+            durationQueue.push(fileId);
+            processDurationQueue();
+        }
+
+        async function loadDocsMap() {
+            if (docsMap.size > 0) return;
+            try {
+                const qDocs = encodeURIComponent(`'${DOCS_FOLDER_ID}' in parents and trashed = false`);
+                const docsResponse = await fetch(`https://www.googleapis.com/drive/v3/files?pageSize=1000&q=${qDocs}&fields=files(id,name)&key=${API_KEY}`);
+                
+                if (docsResponse.ok) {
+                    const docsData = await docsResponse.json();
+                    if (docsData.files) {
+                        docsData.files.forEach(doc => {
+                            docsMap.set(strictNormalize(doc.name), doc.id);
+                        });
+                    }
+                }
+            } catch (err) {
+                console.warn('Erro ao carregar mapa de documentos:', err);
+            }
+        }
+
+        async function fetchAudios(token = null) {
+            try {
+                loadingEl.classList.remove('hidden');
+                listContainerEl.classList.add('hidden');
+                emptyStateEl.classList.add('hidden');
+                errorEl.classList.add('hidden');
+                
+                durationQueue = [];
+
+                await loadDocsMap();
+
+                let qStr = `'${FOLDER_ID}' in parents and trashed = false`;
+                
+                if (searchQuery.trim() !== '') {
+                    const safeQuery = searchQuery.replace(/'/g, "\\'");
+                    qStr += ` and name contains '${safeQuery}'`;
+                } else if (currentFilter !== 'Todos') {
+                    // Busca arquivos cuja nomenclatura inicia com a letra selecionada
+                    qStr += ` and name starts with '${currentFilter}'`;
+                }
+
+                const encodedQ = encodeURIComponent(qStr);
+                let pageTokenParam = token ? `&pageToken=${token}` : '';
+
+                const url = `https://www.googleapis.com/drive/v3/files?pageSize=${PAGE_SIZE}&q=${encodedQ}${pageTokenParam}&fields=nextPageToken,files(id,name,videoMediaMetadata)&key=${API_KEY}`;
+                
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(translator.translate('error_request_failed'));
+                }
+
+                const audioData = await response.json();
+                nextPageToken = audioData.nextPageToken || null;
+
+                loadingEl.classList.add('hidden');
+
+                if (!audioData.files || audioData.files.length === 0) {
+                    emptyStateEl.classList.remove('hidden');
+                    return;
+                }
+
+                const startIndex = (currentPageIndex * PAGE_SIZE) + 1;
+
+                // Centraliza a ordenação alfábetica do nome puro como vem do Google Drive
+                const sortedRawFiles = sortRawDriveFiles(audioData.files);
+
+                // Mapeia e extrai as informações após a ordenação
+                allFiles = sortedRawFiles.map((file, index) => {
+                    const cleanName = file.name.replace(/\.mp3$/i, '').trim();
+                    let artist = 'Desconhecido';
+                    let song = cleanName;
+
+                    if (cleanName.includes(' - ')) {
+                        const parts = cleanName.split(' - ');
+                        artist = parts[0].trim();
+                        song = parts.slice(1).join(' - ').trim(); 
+                    }
+
+                    const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(artist)}&backgroundColor=e2e8f0&textColor=475569`;
+                    
+                    const durationMs = file.videoMediaMetadata?.durationMillis;
+                    let durationStr = durationMs ? formatSeconds(Number(durationMs) / 1000) : null;
+
+                    if (!durationStr) {
+                        durationStr = translator.translate('loading_text');
+                        queueDurationFallback(file.id);
+                    }
+
+                    const strictAudioName = strictNormalize(cleanName);
+                    let matchedDocId = docsMap.get(strictAudioName);
+                    
+                    if (!matchedDocId && song) {
+                        matchedDocId = docsMap.get(strictNormalize(song));
+                    }
+
+                    const docUrl = matchedDocId ? `https://drive.google.com/file/d/${matchedDocId}/view` : null;
+
+                    return {
+                        id: file.id,
+                        originalIndex: startIndex + index,
+                        artist: artist,
+                        song: song,
+                        duration: durationStr,
+                        avatar: avatarUrl,
+                        docUrl: docUrl
+                    };
+                });
+
+                // Caso precise garantir a ordenação final de exibição priorizando cantor
+                allFiles.sort((a, b) => {
+                    const nameA = a.artist !== 'Desconhecido' ? a.artist : a.song;
+                    const nameB = b.artist !== 'Desconhecido' ? b.artist : b.song;
+                    return nameA.localeCompare(nameB, 'pt-BR', { sensitivity: 'base' });
+                });
+
+                // Garante que todos os cantores mostrados começam com a letra filtrada (filtro de salvaguarda extra no cliente)
+                if (currentFilter !== 'Todos') {
+                    allFiles = allFiles.filter(item => {
+                        const firstChar = item.artist !== 'Desconhecido' ? item.artist[0] : item.song[0];
+                        return firstChar.toLowerCase() === currentFilter.toLowerCase();
+                    });
+                    
+                    if (allFiles.length === 0) {
+                        emptyStateEl.classList.remove('hidden');
+                        return;
+                    }
+                }
+
+                controlsContainerEl.classList.remove('hidden');
+                renderTabsAndSelect();
+                renderList();
+                updatePaginationControls();
+
+            } catch (err) {
+                loadingEl.classList.add('hidden');
+                errorEl.classList.remove('hidden');
+                errorMessageEl.textContent = err.message || 'Error loading audios.';
+            }
+        }
+
+        function updatePaginationControls() {
+            pageIndicator.textContent = `${translator.translate('filter_letter')} ${currentPageIndex + 1}`;
+            btnPrevPage.disabled = currentPageIndex === 0;
+            btnNextPage.disabled = !nextPageToken;
+        }
+
+        btnPrevPage.addEventListener('click', () => {
+            if (currentPageIndex > 0) {
+                currentPageIndex--;
+                fetchAudios(pageTokenStack[currentPageIndex]);
+            }
+        });
+
+        btnNextPage.addEventListener('click', () => {
+            if (nextPageToken) {
+                currentPageIndex++;
+                pageTokenStack[currentPageIndex] = nextPageToken;
+                fetchAudios(nextPageToken);
+            }
+        });
+
+        function resetAndFetch() {
+            currentPageIndex = 0;
+            pageTokenStack = [null];
+            nextPageToken = null;
+            fetchAudios(null);
+        }
+
+        function renderTabsAndSelect() {
+            alphabetSelectEl.innerHTML = '';
+
+            alphabet.forEach(letter => {
+                const isSelected = currentFilter === letter;
+                const option = document.createElement('option');
+                option.value = letter;
+                option.textContent = letter === 'Todos' 
+                    ? translator.translate('filter_all_letters') 
+                    : `${translator.translate('filter_letter')} ${letter}`;
+                if (isSelected) option.selected = true;
+                alphabetSelectEl.appendChild(option);
+            });
+        }
+
+        function handleFilterChange(letter) {
+            currentFilter = letter;
+            searchQuery = '';
+            searchInputEl.value = '';
+            resetAndFetch();
+        }
+
+        alphabetSelectEl.addEventListener('change', (e) => handleFilterChange(e.target.value));
+
+        let debounceTimeout = null;
+        searchInputEl.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            if (searchQuery.trim() !== '') {
+                currentFilter = 'Todos';
+                alphabetSelectEl.value = 'Todos';
+            }
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+                resetAndFetch();
+            }, 400);
+        });
+
+        function renderList() {
+            if (allFiles.length === 0) {
+                listContainerEl.classList.add('hidden');
+                emptyStateEl.classList.remove('hidden');
+                return;
+            } else {
+                listContainerEl.classList.remove('hidden');
+                emptyStateEl.classList.add('hidden');
+            }
+
+            audioListEl.innerHTML = '';
+
+            allFiles.forEach((item) => {
+                const li = document.createElement('li');
+                li.className = 'flex items-center py-3.5 px-3 sm:px-4 hover:bg-secondary-container/40 transition-colors group gap-3 sm:gap-4';
+                
+                const docButtonHtml = item.docUrl ? `
+                    <a href="${item.docUrl}" target="_blank" rel="noopener noreferrer" 
+                       class="p-2 text-primary bg-secondary/10 sm:bg-transparent sm:text-on-surface-variant sm:hover:text-primary sm:hover:bg-secondary/10 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-primary" 
+                       title="${translator.translate('lyrics_title')}">
+                        <span class="material-symbols-outlined text-sm">description</span>
+                    </a>
+                ` : `
+                    <span class="p-2 text-on-surface-variant cursor-not-allowed opacity-30" title="${translator.translate('no_lyrics')}">
+                        <span class="material-symbols-outlined text-sm">description</span>
+                    </span>
+                `;
+
+                li.innerHTML = `
+                    <div class="w-6 sm:w-8 shrink-0 text-center font-mono text-xs sm:text-sm text-on-surface-variant font-medium">
+                        ${item.originalIndex}
+                    </div>
+                    <div class="w-8 sm:w-10 shrink-0 flex justify-center">
+                        <img src="${item.avatar}" alt="${item.artist}" class="w-8 h-8 sm:w-9 sm:h-9 rounded border border-secondary/30 shadow-sm object-cover">
+                    </div>
+                    <div class="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center sm:gap-4">
+                        <div class="sm:w-1/3 shrink-0 min-w-0">
+                            <p class="text-xs sm:text-sm font-bold text-primary dark:text-[#fcf9f4] truncate" title="${item.artist}">${item.artist}</p>
+                        </div>
+                        <div class="flex-1 min-w-0 flex items-center justify-between sm:justify-start gap-2">
+                            <p class="text-xs sm:text-sm text-on-surface-variant dark:text-[#d1c4bb] sm:font-medium truncate" title="${item.song}">${item.song}</p>
+                            
+                            <span id="duration-mobile-${item.id}" class="sm:hidden text-[10px] font-mono font-medium text-primary bg-secondary/20 px-1.5 py-0.5 rounded">
+                                ${item.duration}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div id="duration-desktop-${item.id}" class="hidden sm:block w-16 shrink-0 text-center font-mono text-xs font-semibold text-on-surface-variant dark:text-[#d1c4bb]">
+                        ${item.duration}
+                    </div>
+
+                    <div class="w-20 shrink-0 flex items-center justify-end gap-1">
+                        ${docButtonHtml}
+
+                        <a href="https://drive.google.com/file/d/${item.id}/view" target="_blank" rel="noopener noreferrer" 
+                           class="p-2 text-primary bg-secondary/10 sm:bg-transparent sm:text-on-surface-variant sm:hover:text-primary sm:hover:bg-secondary/15 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-primary" 
+                           title="${translator.translate('play_drive')}">
+                            <span class="material-symbols-outlined text-sm">play_circle</span>
+                        </a>
+                    </div>
+                `;
+                audioListEl.appendChild(li);
+            });
+        }
+
+        // =========================================================
+        // LÓGICA DO MODAL
+        // =========================================================
+        function openModal() {
+            modalSearchInput.value = '';
+            setlistDateInput.value = '';
+            sundayShiftContainer.classList.add('hidden');
+            goToStep(1);
+            renderModalSongList();
+            playlistModalEl.classList.remove('hidden');
+        }
+
+        window.handleFilterChange = handleFilterChange;
+
+        function closeModal() {
+            playlistModalEl.classList.add('hidden');
+        }
+
+        function goToStep(step) {
+            if (step === 1) {
+                modalTitleEl.textContent = translator.translate('modal_build');
+                modalStep1.classList.remove('hidden');
+                modalStep2.classList.add('hidden');
+            } else {
+                modalTitleEl.textContent = translator.translate('modal_review');
+                modalStep1.classList.add('hidden');
+                modalStep2.classList.remove('hidden');
+            }
+        }
+
+        setlistDateInput.addEventListener('change', () => {
+            const dateVal = setlistDateInput.value;
+            if (dateVal) {
+                const [year, month, day] = dateVal.split('-').map(Number);
+                const selectedDate = new Date(year, month - 1, day);
+                
+                if (selectedDate.getDay() === 0) {
+                    sundayShiftContainer.classList.remove('hidden');
+                } else {
+                    sundayShiftContainer.classList.add('hidden');
+                }
+            } else {
+                sundayShiftContainer.classList.add('hidden');
+            }
+            updateStep1Footer();
+        });
+
+        function renderModalSongList() {
+            const filterText = modalSearchInput.value.toLowerCase();
+            modalSongsListEl.innerHTML = '';
+
+            const itemsToRender = allFiles.filter(item => 
+                item.artist.toLowerCase().includes(filterText) || 
+                item.song.toLowerCase().includes(filterText)
+            );
+
+            if (itemsToRender.length === 0) {
+                modalSongsListEl.innerHTML = `<p class="text-center text-xs text-on-surface-variant py-6 font-body-md">${translator.translate('empty_desc')}</p>`;
+                return;
+            }
+
+            itemsToRender.forEach(item => {
+                const isChecked = selectedSongsSet.has(item.id);
+                const label = document.createElement('label');
+                label.className = 'flex items-center gap-3 py-2.5 px-2 hover:bg-surface-container rounded cursor-pointer transition-colors';
+                
+                label.innerHTML = `
+                    <input type="checkbox" value="${item.id}" ${isChecked ? 'checked' : ''} class="w-4 h-4 text-primary rounded border-secondary/30 focus:ring-primary focus:border-primary">
+                    <div class="min-w-0 flex-1 flex items-center justify-between gap-2">
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold text-primary dark:text-[#fcf9f4] truncate">${item.artist}</p>
+                            <p class="text-xs text-on-surface-variant dark:text-[#d1c4bb] truncate">${item.song}</p>
+                        </div>
+                        <span id="duration-modal-${item.id}" class="text-[11px] font-mono text-on-surface-variant dark:text-[#d1c4bb] shrink-0">${item.duration}</span>
+                    </div>
+                `;
+
+                const checkbox = label.querySelector('input');
+                checkbox.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        selectedSongsSet.add(item.id);
+                    } else {
+                        selectedSongsSet.delete(item.id);
+                    }
+                    updateStep1Footer();
+                });
+
+                modalSongsListEl.appendChild(label);
+            });
+
+            updateStep1Footer();
+        }
+
+        function updateStep1Footer() {
+            const count = selectedSongsSet.size;
+            const hasDate = setlistDateInput.value !== '';
+            selectedCountEl.textContent = `${count} ${translator.translate('selected')}`;
+            btnGoToStep2.disabled = !(count > 0 && hasDate);
+        }
+
+        modalSearchInput.addEventListener('input', renderModalSongList);
+        btnOpenPlaylist.addEventListener('click', openModal);
+        btnCloseModal.addEventListener('click', closeModal);
+        btnCancelModal.addEventListener('click', closeModal);
+        btnBackToStep1.addEventListener('click', () => goToStep(1));
+
+        btnGoToStep2.addEventListener('click', () => {
+            const dateVal = setlistDateInput.value;
+            const [year, month, day] = dateVal.split('-').map(Number);
+            const dateObj = new Date(year, month - 1, day);
+            
+            const dateFormatted = dateObj.toLocaleDateString('pt-BR');
+            const isSunday = dateObj.getDay() === 0;
+            const shift = sundayShiftSelect.value;
+
+            reviewDateText.textContent = dateFormatted;
+
+            let headerTitle = `*SETLIST - ${dateFormatted}*`;
+            if (isSunday) {
+                reviewShiftWrapper.classList.remove('hidden');
+                
+                const shiftText = translator.getCurrentLanguage() === 'pt' ? shift : (shift === 'Manhã' ? 'Morning' : 'Night');
+                reviewShiftText.textContent = shiftText;
+                headerTitle = `*SETLIST - ${dateFormatted} (${translator.getCurrentLanguage() === 'pt' ? 'Domingo' : 'Sunday'} - ${shiftText})*`;
+            } else {
+                reviewShiftWrapper.classList.add('hidden');
+            }
+
+            const selectedFiles = allFiles.filter(item => selectedSongsSet.has(item.id));
+
+            formattedFinalMessage = `${headerTitle}\n\n`;
+            selectedFiles.forEach((item) => {
+                formattedFinalMessage += `* ${item.artist} - ${item.song}\n       - ${translator.getCurrentLanguage() === 'pt' ? 'Áudio' : 'Audio'}: https://drive.google.com/file/d/${item.id}/view\n`;
+                if (item.docUrl) {
+                    formattedFinalMessage += `       - ${translator.getCurrentLanguage() === 'pt' ? 'Letra' : 'Lyrics'}: ${item.docUrl}\n`;
+                }
+            });
+
+            reviewMessagePreview.textContent = formattedFinalMessage.trim();
+            goToStep(2);
+        });
+
+        btnSendWhatsapp.addEventListener('click', () => {
+            if (!formattedFinalMessage) return;
+            const encodedMessage = encodeURIComponent(formattedFinalMessage.trim());
+            window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
+        });
+
+        // Start loading
+        fetchAudios(null);
+    </script>
+</body>
+</html>

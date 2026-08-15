@@ -1,0 +1,106 @@
+export const en = {
+  // Navigation
+  home: "Home",
+  about: "About",
+  portfolio: "Portfolio",
+  contact: "Contact",
+  quote: "Get a Quote",
+
+  // Hero Section
+  available_projects: "Available for new projects",
+  hero_title: "Felipe Silva: <span class=\"text-secondary dark:text-inverse-primary\">10+ years</span> transforming ideas into robust systems.",
+  hero_desc: "Senior developer specialized in scalable architectures, with a sharp eye for performance and a passion for clean, maintainable code.",
+  start_project: "Start Project",
+  view_portfolio: "View Portfolio",
+  experience_years: "10+ Years",
+  experience_label: "Experience",
+
+  // About Section
+  about_me: "About Me",
+  bio_title: "Born in Americana, SP. 32 years of continuous curiosity.",
+  bio_p1: "With over a decade of experience as a Systems Developer, my journey has been driven by building bridges between complex problems and elegant solutions. I believe that good code is readable, performant, and, above all, resolves the end user's pain.",
+  bio_p2: "My approach blends the technical rigor of software engineering with the creativity required to innovate in environments of constant change.",
+  passions_title: "Side Projects & Passions",
+  passion_music_title: "Rhythm & Harmony",
+  passion_music_desc: "Outside the IDE, I find my flow in music. I play drums, guitar, and bass, exploring the invisible structure of sound, much like software architecture.",
+  passion_geek_title: "Geek Culture & Audiovisual",
+  passion_geek_desc: "Die-hard Star Wars fan and audiovisual production enthusiast. Following the evolution of visual effects fuels my fascination with creative technology.",
+
+  // Experience Section
+  experience_title: "Professional Experience",
+  exp1_time: "2023 – Present",
+  exp1_role: "SUPERLOGICA | Fullstack Developer",
+  exp1_desc: "Condominium ERP maintenance, PHP (Zend), MySQL, Redis, Docker, Unit Testing, and Code Review.",
+  exp2_time: "2024 – Present",
+  exp2_role: "FREELANCER | Fullstack Developer",
+  exp2_desc: "Development of MicroSaaS with NextJS, NestJS, and banking integrations.",
+
+  // Portfolio Section
+  recent_work: "Recent Work",
+  recent_work_desc: "A selection of systems developed focusing on scalability, security, and user experience.",
+  github_all: "View all on GitHub",
+  project1_title: "Listum - Intelligent Digital Catalog",
+  project1_desc: "Robust SaaS that simplifies sales for small and medium-sized entrepreneurs through fast, simple, and professional digital catalog creation, with integrated management and focus on conversion.",
+
+  // Contact Section
+  contact_title: "Let's build something solid together?",
+  contact_desc: "Whether to architect a new system from scratch or refactor a legacy code base, I am available to hear about your project.",
+  location_label: "Americana, SP - Brazil (Remote)",
+  availability_label: "Availability: 10am - 7pm (BRT)",
+  form_name: "Full Name",
+  form_name_placeholder: "e.g. John Doe",
+  form_email: "Professional Email",
+  form_email_placeholder: "john@company.com",
+  form_project_type: "Project Type",
+  form_select_option: "Select an option",
+  form_opt_api: "API/Backend Development",
+  form_opt_webapp: "Full Web Application",
+  form_opt_architecture: "Architecture Consulting",
+  form_opt_maintenance: "Legacy System Maintenance",
+  form_message: "Project Details",
+  form_message_placeholder: "Briefly describe your needs...",
+  form_submit: "Request Quote",
+  form_security: "Your data is safe and formatting is prepared for REST API.",
+  form_status_sending: "Sending your quote request...",
+  form_status_success: "Quote Requested (Simulated via .env)!",
+  form_status_connected: "Connected to:",
+
+  // Footer
+  footer_rights: "© 2024 Felipe Silva. All rights reserved.",
+
+  // ==========================================
+  // Setlist Creator
+  // ==========================================
+  setlist_title: "Music Repertoire",
+  setlist_subtitle: "Worship Ministry, I.E.Q. Hope and Life Family",
+  new_setlist: "New Setlist",
+  search_placeholder: "Search artist or song...",
+  filter_label: "Filter by letter:",
+  filter_all_letters: "All Letters",
+  filter_letter: "Letter",
+  loading_text: "loading...",
+  col_img: "Img",
+  col_artist: "Artist",
+  col_song: "Song",
+  col_time: "Time",
+  col_actions: "Actions",
+  btn_prev: "&larr; Previous",
+  btn_next: "Next &rarr;",
+  empty_title: "No audio found",
+  empty_desc: "Try searching for another term or clear the filter.",
+  modal_build: "Build Setlist",
+  modal_review: "Review Setlist",
+  modal_date: "Setlist Date*",
+  modal_period: "Period (Sunday)*",
+  period_morning: "Morning",
+  period_night: "Night",
+  filter_songs: "Filter songs...",
+  selected_count: "selected",
+  cancel: "Cancel",
+  back: "&larr; Back",
+  btn_review_setlist: "Review Setlist &rarr;",
+  btn_send_whatsapp: "OK / Send to WhatsApp",
+  lyrics_title: "Open Lyrics / Chords in Google Docs",
+  play_drive: "Play in Drive",
+  no_lyrics: "No document in Drive"
+};

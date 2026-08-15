@@ -1,0 +1,106 @@
+export const pt = {
+  // Navigation
+  home: "Home",
+  about: "Sobre",
+  portfolio: "Portfólio",
+  contact: "Contato",
+  quote: "Orçamento",
+
+  // Hero Section
+  available_projects: "Disponível para novos projetos",
+  hero_title: "Felipe Silva: <span class=\"text-secondary dark:text-inverse-primary\">10+ anos</span> transformando ideias em sistemas robustos.",
+  hero_desc: "Desenvolvedor sênior especializado em arquiteturas escaláveis, com um olhar afiado para performance e uma paixão por código limpo e manutenível.",
+  start_project: "Iniciar Projeto",
+  view_portfolio: "Ver Portfólio",
+  experience_years: "10+ Anos",
+  experience_label: "Experiência",
+
+  // About Section
+  about_me: "Sobre Mim",
+  bio_title: "Nascido em Americana, SP. 32 anos de curiosidade contínua.",
+  bio_p1: "Com mais de uma década de experiência como Desenvolvedor de Sistemas, minha jornada tem sido pautada pela construção de pontes entre problemas complexos e soluções elegantes. Acredito que o bom código é legível, performático e, acima de tudo, resolve a dor do usuário final.",
+  bio_p2: "Minha abordagem mescla o rigor técnico da engenharia de software com a criatividade necessária para inovar em ambientes de constante mudança.",
+  passions_title: "Side Projects & Paixões",
+  passion_music_title: "Ritmo & Harmonia",
+  passion_music_desc: "Fora da IDE, encontro fluxo na música. Toco bateria, guitarra e baixo, explorando a estrutura invisível do som, muito semelhante à arquitetura de software.",
+  passion_geek_title: "Cultura Geek & Audiovisual",
+  passion_geek_desc: "Fã inveterado de Star Wars e entusiasta de produção audiovisual. Acompanhar a evolução dos efeitos visuais alimenta meu fascínio por tecnologia criativa.",
+
+  // Experience Section
+  experience_title: "Experiência Profissional",
+  exp1_time: "2023 – Atualmente",
+  exp1_role: "SUPERLOGICA | Desenvolvedor Fullstack",
+  exp1_desc: "Manutenção de ERP de condomínios, PHP (Zend), MySQL, Redis, Docker, Testes Unitários e Code Review.",
+  exp2_time: "2024 – Atualmente",
+  exp2_role: "FREELANCER | Desenvolvedor Fullstack",
+  exp2_desc: "Desenvolvimento de MicroSaas com NextJS, NestJS e integrações bancárias.",
+
+  // Portfolio Section
+  recent_work: "Trabalhos Recentes",
+  recent_work_desc: "Uma seleção de sistemas desenvolvidos focando em escalabilidade, segurança e experiência do usuário.",
+  github_all: "Ver todos no GitHub",
+  project1_title: "Listum - Catálogo Digital Inteligente",
+  project1_desc: "SaaS robusto que simplifica as vendas para pequenos e médios empreendedores através da criação de catálogos digitais de forma rápida, simples e profissional, com gestão integrada e foco em conversão.",
+
+  // Contact Section
+  contact_title: "Vamos construir algo sólido juntos?",
+  contact_desc: "Seja para arquitetar um novo sistema do zero ou refatorar uma base de código legada, estou disponível para ouvir sobre o seu projeto.",
+  location_label: "Americana, SP - Brasil (Remoto)",
+  availability_label: "Disponibilidade: 10h - 19h (BRT)",
+  form_name: "Nome Completo",
+  form_name_placeholder: "Ex: João Silva",
+  form_email: "E-mail Profissional",
+  form_email_placeholder: "joao@empresa.com",
+  form_project_type: "Tipo de Projeto",
+  form_select_option: "Selecione uma opção",
+  form_opt_api: "Desenvolvimento de API/Backend",
+  form_opt_webapp: "Web Application Completa",
+  form_opt_architecture: "Consultoria em Arquitetura",
+  form_opt_maintenance: "Manutenção de Sistema Legado",
+  form_message: "Detalhes do Projeto",
+  form_message_placeholder: "Descreva brevemente sua necessidade...",
+  form_submit: "Solicitar Orçamento",
+  form_security: "Seus dados estão seguros e formatação preparada para API REST.",
+  form_status_sending: "Enviando sua proposta...",
+  form_status_success: "Orçamento Solicitado (Simulado via .env)!",
+  form_status_connected: "Conectado a:",
+
+  // Footer
+  footer_rights: "© 2024 Felipe Silva. Todos os direitos reservados.",
+
+  // ==========================================
+  // Setlist Creator
+  // ==========================================
+  setlist_title: "Repertório de Músicas",
+  setlist_subtitle: "Ministério de Louvor, I.E.Q. Família Esperança e Vida",
+  new_setlist: "Novo Setlist",
+  search_placeholder: "Buscar cantor ou música...",
+  filter_label: "Filtrar por letra:",
+  filter_all_letters: "Todas",
+  filter_letter: "Letra",
+  loading_text: "carregando...",
+  col_img: "Img",
+  col_artist: "Cantor",
+  col_song: "Música",
+  col_time: "Tempo",
+  col_actions: "Ações",
+  btn_prev: "&larr; Anterior",
+  btn_next: "Próxima &rarr;",
+  empty_title: "Nenhum áudio encontrado",
+  empty_desc: "Tente buscar por outro termo ou limpe o filtro.",
+  modal_build: "Montar Setlist",
+  modal_review: "Conferir Setlist",
+  modal_date: "Data do Setlist*",
+  modal_period: "Período (Domingo)*",
+  period_morning: "Manhã",
+  period_night: "Noite",
+  filter_songs: "Filtrar músicas...",
+  selected_count: "selecionadas",
+  cancel: "Cancelar",
+  back: "&larr; Voltar",
+  btn_review_setlist: "Conferir Setlist &rarr;",
+  btn_send_whatsapp: "OK / Enviar no WhatsApp",
+  lyrics_title: "Abrir Letra / Cifra no Google Docs",
+  play_drive: "Reproduzir no Drive",
+  no_lyrics: "Sem documento no Drive"
+};
