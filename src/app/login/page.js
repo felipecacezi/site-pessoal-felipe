@@ -17,6 +17,23 @@ export default function LoginPage() {
   }, [user, isApproved, router]);
 
   const handleLogin = async () => {
+    const now = Date.now();
+    const attemptsStr = localStorage.getItem('login_attempts') || '[]';
+    let attempts = JSON.parse(attemptsStr);
+    
+    // Filter attempts within the last 60 seconds
+    attempts = attempts.filter(timestamp => now - timestamp < 60000);
+    
+    if (attempts.length >= 5) {
+      const oldestAttempt = attempts[0];
+      const cooldownSecs = Math.ceil((60000 - (now - oldestAttempt)) / 1000);
+      alert(`Muitas tentativas de login! Por favor, aguarde ${cooldownSecs} segundos antes de tentar novamente.`);
+      return;
+    }
+    
+    attempts.push(now);
+    localStorage.setItem('login_attempts', JSON.stringify(attempts));
+
     try {
       await loginWithGoogle();
     } catch (err) {

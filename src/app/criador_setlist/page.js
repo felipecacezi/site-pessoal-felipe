@@ -9,9 +9,9 @@ import { ref, set, get, onValue } from 'firebase/database';
 import { db } from '../services/firebase';
 import { sortRawDriveFiles } from '../../utils/audio-sorter';
 
-const API_KEY = process.env.NEXT_PUBLIC_VITE_API_KEY || 'AIzaSyD-WBcFFDuF3gtvonCn4KHAOgHYf9p1qsk'; 
-const FOLDER_ID = '1rs-JyMfdMpdwPNCrHEzF85W3pDGcye99'; 
-const DOCS_FOLDER_ID = '1-c8JlX8Agow-0ZPTo9nTjQnJG8BPRfXA'; 
+const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_API_KEY; 
+const FOLDER_ID = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID; 
+const DOCS_FOLDER_ID = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_DOCS_FOLDER_ID; 
 const PAGE_SIZE = 10;
 
 const alphabet = ['Todos', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
