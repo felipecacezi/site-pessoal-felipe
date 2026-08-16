@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth, db, googleProvider } from '../services/firebase';
-import { onAuthStateChanged, signOut, signInWithPopup } from 'firebase/auth';
+import { onAuthStateChanged, signOut, signInWithRedirect } from 'firebase/auth';
 import { ref, set, onValue } from 'firebase/database';
 
 const AuthContext = createContext();
@@ -63,7 +63,7 @@ export function AuthProvider({ children }) {
   const loginWithGoogle = async () => {
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      await signInWithRedirect(auth, googleProvider);
     } catch (error) {
       console.error("Login failed:", error);
       setLoading(false);

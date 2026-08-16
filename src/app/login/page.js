@@ -37,7 +37,8 @@ export default function LoginPage() {
     try {
       await loginWithGoogle();
     } catch (err) {
-      alert('Erro ao realizar o login. Tente novamente.');
+      console.error("Firebase Login Error:", err);
+      alert(`Erro ao realizar o login: ${err.code || err.message || err}`);
     }
   };
 
