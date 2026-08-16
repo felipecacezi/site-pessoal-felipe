@@ -202,9 +202,6 @@ export default function HomePage() {
               <Link className="text-on-surface-variant dark:text-[#ebe8e3] text-sm hover:text-primary transition-colors duration-200" href="#contact">
                 {t('contact')}
               </Link>
-              <Link className="text-on-surface-variant dark:text-[#ebe8e3] text-sm hover:text-primary transition-colors duration-200" href="/criador_setlist">
-                Setlist
-              </Link>
             </nav>
 
             <div className="h-6 w-px bg-secondary/20 hidden md:block" />
@@ -317,13 +314,6 @@ export default function HomePage() {
                 href="#contact"
               >
                 {t('contact')}
-              </Link>
-              <Link
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-lg font-medium text-on-surface-variant dark:text-[#ebe8e3] hover:pl-2 transition-all duration-200"
-                href="/criador_setlist"
-              >
-                Setlist
               </Link>
             </nav>
           </div>
@@ -650,9 +640,10 @@ export default function HomePage() {
                       className="w-full bg-surface-bright dark:bg-[#121210] border-b border-secondary/30 focus:border-primary focus:ring-0 px-1 py-2 text-sm text-primary dark:text-[#fcf9f4] transition-colors outline-none cursor-pointer"
                       id="project_type"
                       name="project_type"
+                      defaultValue=""
                       required
                     >
-                      <option disabled selected value="">
+                      <option disabled value="">
                         {t('form_select_option')}
                       </option>
                       <option value="api">{t('form_opt_api')}</option>

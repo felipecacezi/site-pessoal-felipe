@@ -3,6 +3,8 @@
 
 @import "tailwindcss";
 
+@variant dark (.dark &);
+
 @theme {
   --color-surface-container-lowest: #ffffff;
   --color-on-background: #1c1c19;
