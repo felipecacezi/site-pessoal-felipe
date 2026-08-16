@@ -294,9 +294,9 @@
 
     <!-- Script module that loads translator class decoupled -->
     <script type="module">
-        import { Translator } from './src/i18n/translator.js';
-        import { LocalTranslationAdapter } from './src/i18n/adapters/local-translation.adapter.js';
-        import { sortRawDriveFiles } from './src/utils/audio-sorter.js';
+        import { Translator } from '../src/i18n/translator.js';
+        import { LocalTranslationAdapter } from '../src/i18n/adapters/local-translation.adapter.js';
+        import { sortRawDriveFiles } from '../src/utils/audio-sorter.js';
 
         const translationService = new LocalTranslationAdapter();
         const translator = new Translator(translationService);
