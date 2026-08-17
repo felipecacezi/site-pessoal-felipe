@@ -11,12 +11,14 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [isApproved, setIsApproved] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
     let unsubscribeDatabase = () => {};
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
       unsubscribeDatabase(); // Clear previous listener
+      setAuthError(null);
 
       if (currentUser) {
         setUser(currentUser);
@@ -38,12 +40,18 @@ export function AuthProvider({ children }) {
               approved: false, // Pending by default
               createdAt: new Date().toISOString()
             };
-            await set(userRef, userData);
-            setIsApproved(false);
+            try {
+              await set(userRef, userData);
+              setIsApproved(false);
+            } catch (err) {
+              console.error("Failed to write user doc:", err);
+              setAuthError(`Erro de Escrita: ${err.message}`);
+            }
           }
           setLoading(false);
         }, (error) => {
           console.error("Realtime Database error:", error);
+          setAuthError(`Erro de Leitura (Regras do Banco): ${error.message}`);
           setLoading(false);
         });
 
@@ -62,10 +70,12 @@ export function AuthProvider({ children }) {
 
   const loginWithGoogle = async () => {
     setLoading(true);
+    setAuthError(null);
     try {
       await signInWithRedirect(auth, googleProvider);
     } catch (error) {
       console.error("Login failed:", error);
+      setAuthError(`Erro no login: ${error.message}`);
       setLoading(false);
       throw error;
     }
@@ -73,6 +83,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     setLoading(true);
+    setAuthError(null);
     try {
       await signOut(auth);
     } catch (error) {
@@ -81,7 +92,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isApproved, loginWithGoogle, logout, loading }}>
+    <AuthContext.Provider value={{ user, isApproved, loginWithGoogle, logout, loading, authError }}>
       {children}
     </AuthContext.Provider>
   );

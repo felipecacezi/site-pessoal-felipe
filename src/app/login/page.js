@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function LoginPage() {
-  const { user, isApproved, loginWithGoogle, logout, loading } = useAuth();
+  const { user, isApproved, loginWithGoogle, logout, loading, authError } = useAuth();
   const router = useRouter();
 
   // Redirect to restricted area if already authenticated and approved
@@ -50,6 +50,12 @@ export default function LoginPage() {
         <Link href="/" className="text-2xl font-bold text-primary dark:text-inverse-primary tracking-tighter mb-8">
           Felipe Silva
         </Link>
+
+        {authError && (
+          <div className="w-full bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 rounded-xl p-3.5 text-xs font-semibold mb-6">
+            {authError}
+          </div>
+        )}
 
         {loading ? (
           <div className="flex flex-col items-center py-10">
