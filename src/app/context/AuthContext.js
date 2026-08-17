@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth, db, googleProvider } from '../services/firebase';
-import { onAuthStateChanged, signOut, signInWithRedirect } from 'firebase/auth';
+import { onAuthStateChanged, signOut, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { ref, set, onValue } from 'firebase/database';
 
 const AuthContext = createContext();
@@ -14,6 +14,18 @@ export function AuthProvider({ children }) {
   const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
+    // 1. Handle redirect result on page load
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          console.log("Redirect login resolved:", result.user);
+        }
+      })
+      .catch((error) => {
+        console.error("Redirect login error:", error);
+        setAuthError(`Erro de Redirecionamento: [${error.code}] ${error.message}`);
+      });
+
     let unsubscribeDatabase = () => {};
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
