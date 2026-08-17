@@ -1,8 +1,14 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { auth, db, googleProvider } from '../services/firebase';
-import { onAuthStateChanged, signOut, signInWithRedirect, getRedirectResult } from 'firebase/auth';
+import { auth, db } from '../services/firebase';
+import { 
+  onAuthStateChanged, 
+  signOut, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  updateProfile
+} from 'firebase/auth';
 import { ref, set, onValue } from 'firebase/database';
 
 const AuthContext = createContext();
@@ -14,18 +20,6 @@ export function AuthProvider({ children }) {
   const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
-    // 1. Handle redirect result on page load
-    getRedirectResult(auth)
-      .then((result) => {
-        if (result) {
-          console.log("Redirect login resolved:", result.user);
-        }
-      })
-      .catch((error) => {
-        console.error("Redirect login error:", error);
-        setAuthError(`Erro de Redirecionamento: [${error.code}] ${error.message}`);
-      });
-
     let unsubscribeDatabase = () => {};
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
@@ -43,12 +37,12 @@ export function AuthProvider({ children }) {
           if (data) {
             setIsApproved(data.approved === true);
           } else {
-            // First time logging in, create entry in pending state
+            // First time logging in or registering, ensure database record exists
             const userData = {
               uid: currentUser.uid,
-              displayName: currentUser.displayName,
+              displayName: currentUser.displayName || currentUser.email.split('@')[0],
               email: currentUser.email,
-              photoURL: currentUser.photoURL,
+              photoURL: currentUser.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(currentUser.email)}`,
               approved: false, // Pending by default
               createdAt: new Date().toISOString()
             };
@@ -57,7 +51,7 @@ export function AuthProvider({ children }) {
               setIsApproved(false);
             } catch (err) {
               console.error("Failed to write user doc:", err);
-              setAuthError(`Erro de Escrita: ${err.message}`);
+              setAuthError(`Erro de Escrita no Banco: ${err.message}`);
             }
           }
           setLoading(false);
@@ -80,14 +74,62 @@ export function AuthProvider({ children }) {
     };
   }, []);
 
-  const loginWithGoogle = async () => {
+  const loginWithEmail = async (email, password) => {
     setLoading(true);
     setAuthError(null);
     try {
-      await signInWithRedirect(auth, googleProvider);
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
       console.error("Login failed:", error);
-      setAuthError(`Erro no login: ${error.message}`);
+      let friendlyMessage = error.message;
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+        friendlyMessage = 'E-mail ou senha incorretos.';
+      } else if (error.code === 'auth/invalid-email') {
+        friendlyMessage = 'Formato de e-mail inválido.';
+      }
+      setAuthError(friendlyMessage);
+      setLoading(false);
+      throw error;
+    }
+  };
+
+  const registerWithEmail = async (name, email, password) => {
+    setLoading(true);
+    setAuthError(null);
+    try {
+      // 1. Create Auth credentials
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // 2. Update Auth display profile
+      await updateProfile(userCredential.user, {
+        displayName: name,
+        photoURL: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`
+      });
+
+      // 3. Write record to Database in pending approval state
+      const userRef = ref(db, `users/${userCredential.user.uid}`);
+      const userData = {
+        uid: userCredential.user.uid,
+        displayName: name,
+        email: email,
+        photoURL: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`,
+        approved: false,
+        createdAt: new Date().toISOString()
+      };
+      await set(userRef, userData);
+      setIsApproved(false);
+      setLoading(false);
+    } catch (error) {
+      console.error("Registration failed:", error);
+      let friendlyMessage = error.message;
+      if (error.code === 'auth/email-already-in-use') {
+        friendlyMessage = 'Este e-mail já está em uso por outra conta.';
+      } else if (error.code === 'auth/weak-password') {
+        friendlyMessage = 'A senha escolhida é muito fraca (mínimo de 6 caracteres).';
+      } else if (error.code === 'auth/invalid-email') {
+        friendlyMessage = 'Formato de e-mail inválido.';
+      }
+      setAuthError(friendlyMessage);
       setLoading(false);
       throw error;
     }
@@ -104,7 +146,7 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isApproved, loginWithGoogle, logout, loading, authError }}>
+    <AuthContext.Provider value={{ user, isApproved, loginWithEmail, registerWithEmail, logout, loading, authError }}>
       {children}
     </AuthContext.Provider>
   );
