@@ -101,6 +101,33 @@ export default function RestrictedDashboard() {
             </div>
           </Link>
 
+          {/* Tool Card: Gerenciador de Equipes */}
+          <Link
+            href="/gerenciador_equipes"
+            className="group bg-white dark:bg-inverse-surface border border-secondary/20 dark:border-secondary/10 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-primary/40 dark:hover:border-secondary/30 transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary dark:text-inverse-primary mb-4 group-hover:scale-105 transition-transform duration-200">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-primary dark:text-[#fcf9f4] group-hover:text-secondary dark:group-hover:text-inverse-primary transition-colors">
+                Gerenciador de Equipes
+              </h3>
+              <p className="mt-2 text-sm text-on-surface-variant dark:text-[#d1c4bb] leading-relaxed">
+                Cadastre e gerencie equipes da igreja e seus líderes. Acesso rápido ao WhatsApp de cada equipe com visual otimizado e botões grandes para celulares.
+              </p>
+            </div>
+            
+            <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-secondary dark:text-inverse-primary group-hover:text-primary transition-colors">
+              <span>Acessar Módulo</span>
+              <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </div>
+          </Link>
+
           {/* Placeholder for future tools */}
           <div className="bg-surface-container/30 dark:bg-inverse-surface/20 border border-dashed border-secondary/30 rounded-2xl p-6 flex flex-col items-center justify-center text-center text-on-surface-variant/60 min-h-[220px]">
             <svg className="w-8 h-8 mb-3 opacity-60" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
