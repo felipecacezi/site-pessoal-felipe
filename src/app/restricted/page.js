@@ -128,6 +128,36 @@ export default function RestrictedDashboard() {
             </div>
           </Link>
 
+          {/* Tool Card: Gerenciador de Gincanas */}
+          <Link
+            href="/gerenciador_gincanas"
+            className="group bg-white dark:bg-inverse-surface border border-secondary/20 dark:border-secondary/10 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-primary/40 dark:hover:border-secondary/30 transition-all duration-300 flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-12 h-12 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-200">
+                <span className="text-2xl">🏆</span>
+              </div>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-lg font-bold text-primary dark:text-[#fcf9f4] group-hover:text-secondary dark:group-hover:text-inverse-primary transition-colors">
+                  Gerenciador de Gincanas
+                </h3>
+                <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full border border-amber-500/20">
+                  Novo
+                </span>
+              </div>
+              <p className="mt-2 text-sm text-on-surface-variant dark:text-[#d1c4bb] leading-relaxed">
+                Cadastre gincanas e equipes personalizadas com cores e mascotes. Lance e subtraia pontos com 1 toque, visualize pódio ao vivo e envie o placar no WhatsApp.
+              </p>
+            </div>
+            
+            <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-secondary dark:text-inverse-primary group-hover:text-primary transition-colors">
+              <span>Acessar Módulo</span>
+              <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </div>
+          </Link>
+
           {/* Placeholder for future tools */}
           <div className="bg-surface-container/30 dark:bg-inverse-surface/20 border border-dashed border-secondary/30 rounded-2xl p-6 flex flex-col items-center justify-center text-center text-on-surface-variant/60 min-h-[220px]">
             <svg className="w-8 h-8 mb-3 opacity-60" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
