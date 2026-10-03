@@ -208,7 +208,7 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
           return {
             id: trackId,
             ...trackData,
-            volume: userPersonalTrackMix.volume ?? 0.85,
+            volume: userPersonalTrackMix.volume ?? 0.5,
             pan: userPersonalTrackMix.pan ?? 0,
             muted: userPersonalTrackMix.muted ?? false,
             solo: userPersonalTrackMix.solo ?? false,
