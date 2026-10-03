@@ -114,6 +114,7 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
   const audioBuffersRef = useRef({}); // trackId -> AudioBuffer
   const activeSourcesRef = useRef({}); // trackId -> AudioBufferSourceNode
   const trackNodesRef = useRef({}); // trackId -> { gainNode, pannerNode }
+  const masterGainNodeRef = useRef(null); // Central dedicated master gain node
   const playbackStartTimeRef = useRef(0);
   const playbackStartOffsetRef = useRef(0);
   const animationFrameRef = useRef(null);
@@ -139,6 +140,13 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
       } catch {}
     });
     trackNodesRef.current = {};
+
+    if (masterGainNodeRef.current) {
+      try {
+        masterGainNodeRef.current.disconnect();
+      } catch {}
+      masterGainNodeRef.current = null;
+    }
 
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -386,6 +394,15 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
     const ctx = getOrCreateAudioContext();
     if (!ctx) return;
 
+    // Ensure central master gain node exists and connects to destination
+    if (!masterGainNodeRef.current) {
+      const masterGain = ctx.createGain();
+      // 100% master volume delivers 1.2x (+20% headroom/gain)
+      masterGain.gain.setValueAtTime(masterVolume * 1.2, ctx.currentTime);
+      masterGain.connect(ctx.destination);
+      masterGainNodeRef.current = masterGain;
+    }
+
     tracks.forEach((track) => {
       if (!trackNodesRef.current[track.id]) {
         const gainNode = ctx.createGain();
@@ -394,9 +411,10 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
         if (pannerNode) {
           pannerNode.connect(gainNode);
         }
-        gainNode.connect(ctx.destination);
+        // Connect each track gain to masterGainNode instead of directly to destination
+        gainNode.connect(masterGainNodeRef.current);
 
-        gainNode.gain.value = track.volume * masterVolume;
+        gainNode.gain.value = track.volume;
         if (pannerNode) pannerNode.pan.value = track.pan;
 
         trackNodesRef.current[track.id] = { gainNode, pannerNode };
@@ -411,7 +429,15 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
     });
   }, [tracks]);
 
-  // Gains and Panners
+  // Master Gain updates
+  useEffect(() => {
+    if (masterGainNodeRef.current && audioCtxRef.current) {
+      // 100% master volume delivers 1.2x (+20% louder)
+      masterGainNodeRef.current.gain.setValueAtTime(masterVolume * 1.2, audioCtxRef.current.currentTime);
+    }
+  }, [masterVolume]);
+
+  // Track Gains and Panners (Independent of master volume)
   useEffect(() => {
     const hasAnySolo = tracks.some((t) => t.solo);
 
@@ -420,9 +446,9 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
       if (nodeObj && nodeObj.gainNode) {
         let effectiveVol = 0;
         if (hasAnySolo) {
-          effectiveVol = track.solo && !track.muted ? track.volume * masterVolume : 0;
+          effectiveVol = track.solo && !track.muted ? track.volume : 0;
         } else {
-          effectiveVol = track.muted ? 0 : track.volume * masterVolume;
+          effectiveVol = track.muted ? 0 : track.volume;
         }
         nodeObj.gainNode.gain.setValueAtTime(effectiveVol, audioCtxRef.current?.currentTime || 0);
 
@@ -431,7 +457,7 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
         }
       }
     });
-  }, [tracks, masterVolume]);
+  }, [tracks]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -941,21 +967,41 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
               </div>
 
               {/* Master Volume */}
-              <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                <span className="text-[11px] font-bold text-on-surface-variant uppercase">Master:</span>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={masterVolume}
-                  onChange={(e) => setMasterVolume(parseFloat(e.target.value))}
-                  className="w-20 h-1.5 bg-secondary/20 rounded-lg appearance-none cursor-pointer accent-primary"
-                  title={`Volume Geral: ${Math.round(masterVolume * 100)}%`}
-                />
-                <span className="text-[11px] font-mono text-on-surface-variant w-8 text-right">
-                  {Math.round(masterVolume * 100)}%
-                </span>
+              <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end bg-surface-container/40 dark:bg-[#1a1a18] px-3 py-1.5 rounded-xl border border-secondary/20">
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setMasterVolume((prev) => (prev > 0 ? 0 : 1))}
+                    className="text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+                    title={masterVolume === 0 ? "Desmutar Master" : "Mutar Master"}
+                  >
+                    {masterVolume === 0 ? (
+                      <span className="text-xs">🔇</span>
+                    ) : masterVolume < 0.5 ? (
+                      <span className="text-xs">🔉</span>
+                    ) : (
+                      <span className="text-xs">🔊</span>
+                    )}
+                  </button>
+                  <span className="text-[10px] sm:text-[11px] font-bold text-primary dark:text-[#fcf9f4] uppercase tracking-wider">
+                    Master
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 flex-1 sm:flex-initial justify-end">
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={masterVolume}
+                    onChange={(e) => setMasterVolume(parseFloat(e.target.value))}
+                    className="w-24 sm:w-28 h-1.5 bg-secondary/20 rounded-lg appearance-none cursor-pointer accent-primary"
+                    title={`Volume Master Geral: ${Math.round(masterVolume * 100)}% (Não altera volumes individuais)`}
+                  />
+                  <span className="text-[11px] font-mono font-bold text-primary dark:text-[#fcf9f4] w-9 text-right">
+                    {Math.round(masterVolume * 100)}%
+                  </span>
+                </div>
               </div>
             </div>
 
