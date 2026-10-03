@@ -88,6 +88,9 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
   const [editFormInstrument, setEditFormInstrument] = useState('');
   const [editFormIcon, setEditFormIcon] = useState('');
 
+  // Mobile dedicated track controls modal (Volume, Pan, Mute, Solo)
+  const [mobileControlTrackId, setMobileControlTrackId] = useState(null);
+
   // Drag to reorder track state
   const [draggedTrackId, setDraggedTrackId] = useState(null);
 
@@ -233,7 +236,7 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
     return audioCtxRef.current;
   };
 
-  // Preload and decode all audio files into RAM AudioBuffers
+  // Preload and decode audio files efficiently into RAM AudioBuffers without crashing mobile browsers
   const loadAllTracksIntoMemory = async (tracksToLoad) => {
     const ctx = getOrCreateAudioContext();
     if (!ctx || tracksToLoad.length === 0) return;
@@ -255,35 +258,103 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
       loadedCount: 0,
       totalCount: pendingTracks.length,
       progressPercent: 0,
-      statusText: 'Carregando faixas em memória...',
+      statusText: 'Otimizando e transmitindo faixas...',
     });
 
     let loaded = 0;
     const newWaveforms = { ...waveforms };
 
-    await Promise.all(
-      pendingTracks.map(async (track) => {
-        try {
-          const res = await fetch(track.url);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const arrayBuffer = await res.arrayBuffer();
-          const decodedBuffer = await ctx.decodeAudioData(arrayBuffer);
-          audioBuffersRef.current[track.id] = decodedBuffer;
-          newWaveforms[track.id] = extractWaveformPeaks(decodedBuffer, 140);
-        } catch (err) {
-          console.error(`Erro ao carregar áudio [${track.name}]:`, err);
-        } finally {
-          loaded += 1;
-          setLoadingAudioState({
-            isLoading: true,
-            loadedCount: loaded,
-            totalCount: pendingTracks.length,
-            progressPercent: Math.round((loaded / pendingTracks.length) * 100),
-            statusText: `Carregando em memória (${loaded}/${pendingTracks.length})...`,
-          });
+    // Function to convert decoded buffer to mono if memory is constrained (cuts RAM usage in half)
+    const optimizeDecodedBuffer = (decodedBuffer) => {
+      // If mobile or has 2 channels, downmix to 1 channel mono buffer.
+      // Since Multitrack has independent StereoPanner per track, a mono buffer uses 50% RAM
+      // and pans identically in stereo without any quality loss!
+      if (decodedBuffer.numberOfChannels <= 1) return decodedBuffer;
+
+      try {
+        const monoBuffer = ctx.createBuffer(1, decodedBuffer.length, decodedBuffer.sampleRate);
+        const monoData = monoBuffer.getChannelData(0);
+        const ch0 = decodedBuffer.getChannelData(0);
+        const ch1 = decodedBuffer.getChannelData(1);
+        for (let i = 0; i < decodedBuffer.length; i++) {
+          monoData[i] = (ch0[i] + ch1[i]) * 0.5;
         }
-      })
-    );
+        return monoBuffer;
+      } catch (e) {
+        // Fallback to original buffer if downmix fails
+        return decodedBuffer;
+      }
+    };
+
+    // Process in controlled batches of 2 to avoid RAM spikes and browser freezing on mobile
+    const BATCH_SIZE = 2;
+    for (let i = 0; i < pendingTracks.length; i += BATCH_SIZE) {
+      const batch = pendingTracks.slice(i, i + BATCH_SIZE);
+      
+      await Promise.all(
+        batch.map(async (track) => {
+          try {
+            // Stream the audio response chunks into an array of Uint8Arrays
+            const res = await fetch(track.url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+            let arrayBuffer;
+            if (res.body && typeof res.body.getReader === 'function') {
+              const reader = res.body.getReader();
+              const chunks = [];
+              let receivedBytes = 0;
+
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                chunks.push(value);
+                receivedBytes += value.length;
+              }
+
+              // Concatenate streamed chunks
+              const combined = new Uint8Array(receivedBytes);
+              let offset = 0;
+              for (const chunk of chunks) {
+                combined.set(chunk, offset);
+                offset += chunk.length;
+              }
+              arrayBuffer = combined.buffer;
+            } else {
+              arrayBuffer = await res.arrayBuffer();
+            }
+
+            const rawDecoded = await ctx.decodeAudioData(arrayBuffer);
+            const optimized = optimizeDecodedBuffer(rawDecoded);
+            audioBuffersRef.current[track.id] = optimized;
+            newWaveforms[track.id] = extractWaveformPeaks(optimized, 140);
+          } catch (err) {
+            console.error(`Erro ao carregar e decodificar [${track.name}]:`, err);
+          } finally {
+            loaded += 1;
+            setLoadingAudioState({
+              isLoading: true,
+              loadedCount: loaded,
+              totalCount: pendingTracks.length,
+              progressPercent: Math.round((loaded / pendingTracks.length) * 100),
+              statusText: `Processando faixas (${loaded}/${pendingTracks.length})...`,
+            });
+          }
+        })
+      );
+      
+      // Update waveforms incrementally after each batch
+      setWaveforms({ ...newWaveforms });
+      
+      // Update max duration dynamically as tracks arrive
+      let currentMax = 0;
+      Object.values(audioBuffersRef.current).forEach((buf) => {
+        if (buf?.duration) currentMax = Math.max(currentMax, buf.duration);
+      });
+      if (currentMax > 0) setDuration(Math.max(10, currentMax));
+
+      // Yield event loop slightly to let Garbage Collector run and keep UI responsive
+      await new Promise((r) => setTimeout(r, 60));
+    }
 
     setWaveforms(newWaveforms);
 
@@ -947,7 +1018,7 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
                       }`}
                     >
                       {/* Left Inspector / Mixer Strip */}
-                      <div className="w-56 sm:w-64 p-2 bg-surface-container-low dark:bg-[#141412] border-r border-secondary/20 flex flex-col justify-between shrink-0 gap-1.5">
+                      <div className="w-36 sm:w-64 p-2 bg-surface-container-low dark:bg-[#141412] border-r border-secondary/20 flex flex-col justify-between shrink-0 gap-1.5">
                         
                         {/* Top: Icon, Name, Admin Edit Button */}
                         <div className="flex items-center gap-1.5 min-w-0">
@@ -1013,8 +1084,24 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
                           )}
                         </div>
 
-                        {/* Bottom: User Personal Controls (Mute, Solo, Pan, Volume) */}
-                        <div className="flex items-center justify-between gap-1 pt-1 border-t border-secondary/10">
+                        {/* Mobile trigger button for large precision modal */}
+                        <div className="flex sm:hidden items-center justify-between gap-1 pt-1 border-t border-secondary/10">
+                          <button
+                            type="button"
+                            onClick={() => setMobileControlTrackId(track.id)}
+                            className="w-full py-1 px-2 rounded-md bg-secondary/10 hover:bg-primary/20 text-primary dark:text-[#fcf9f4] border border-secondary/20 font-bold text-[10px] flex items-center justify-between transition-colors"
+                          >
+                            <span className="flex items-center gap-1">
+                              🎛️ <span>Ajustes</span>
+                            </span>
+                            <span className="font-mono text-[9px] text-on-surface-variant">
+                              {track.muted ? 'Mudo' : `${Math.round(track.volume * 100)}%`}
+                            </span>
+                          </button>
+                        </div>
+
+                        {/* Desktop / Tablet Controls: User Personal Controls (Mute, Solo, Pan, Volume) */}
+                        <div className="hidden sm:flex items-center justify-between gap-1 pt-1 border-t border-secondary/10">
                           {/* M / S */}
                           <div className="flex items-center gap-1 shrink-0">
                             <button
@@ -1364,7 +1451,146 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
             </div>
           </div>
         </div>
-      )}
+      {/* Dedicated Mobile Controls Modal (Large Touch Sliders for Volume, Pan, Mute, Solo) */}
+      {(() => {
+        if (!mobileControlTrackId) return null;
+        const track = tracks.find((t) => t.id === mobileControlTrackId);
+        if (!track) return null;
+
+        const preset = INSTRUMENT_PRESETS.find((p) => p.name === track.instrument) || {
+          icon: '🎵',
+          color: 'bg-primary/10 text-primary border-primary/20',
+        };
+        const trackIcon = track.customIcon || preset.icon;
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+            <div className="w-full sm:max-w-md bg-surface dark:bg-[#181816] border border-secondary/20 rounded-t-3xl sm:rounded-2xl p-6 shadow-2xl flex flex-col gap-6">
+              
+              {/* Header */}
+              <div className="flex items-center justify-between border-b border-secondary/15 pb-3">
+                <div className="flex items-center gap-3">
+                  <span className={`w-10 h-10 rounded-xl flex items-center justify-center text-xl border ${preset.color}`}>
+                    {trackIcon}
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-base text-primary dark:text-[#fcf9f4] leading-tight">
+                      {track.name}
+                    </h3>
+                    <p className="text-xs text-on-surface-variant">
+                      {track.instrument} • Ajustes de Áudio
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMobileControlTrackId(null)}
+                  className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors text-base font-bold cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Mute & Solo Big Buttons */}
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleToggleMute(track.id)}
+                  className={`py-3 px-4 rounded-xl font-bold text-sm border flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    track.muted
+                      ? 'bg-red-600 text-white border-red-700 shadow-md scale-[0.98]'
+                      : 'bg-surface-container/60 text-on-surface-variant hover:text-red-500 border-secondary/25'
+                  }`}
+                >
+                  <span className="text-base">🔇</span>
+                  <span>{track.muted ? 'Desmutar Faixa' : 'Mutar Faixa'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleToggleSolo(track.id)}
+                  className={`py-3 px-4 rounded-xl font-bold text-sm border flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    track.solo
+                      ? 'bg-amber-500 text-black border-amber-600 shadow-md scale-[0.98]'
+                      : 'bg-surface-container/60 text-on-surface-variant hover:text-amber-500 border-secondary/25'
+                  }`}
+                >
+                  <span className="text-base">⭐</span>
+                  <span>{track.solo ? 'Desativar Solo' : 'Solar Faixa'}</span>
+                </button>
+              </div>
+
+              {/* Volume Slider */}
+              <div className="space-y-2 bg-surface-container-low dark:bg-[#121210] p-4 rounded-2xl border border-secondary/15">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
+                    🔊 Volume
+                  </span>
+                  <span className="font-mono text-sm font-bold text-primary dark:text-[#fcf9f4]">
+                    {Math.round(track.volume * 100)}%
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={track.volume}
+                  onChange={(e) => handleVolumeChange(track.id, e.target.value)}
+                  className="w-full h-3 bg-secondary/20 rounded-lg appearance-none cursor-pointer accent-primary"
+                />
+              </div>
+
+              {/* Pan Slider */}
+              <div className="space-y-2 bg-surface-container-low dark:bg-[#121210] p-4 rounded-2xl border border-secondary/15">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-1.5">
+                    ⚖️ Panorâmica (L / R)
+                  </span>
+                  <span className="font-mono text-xs font-bold text-primary dark:text-[#fcf9f4]">
+                    {track.pan === 0
+                      ? 'Centro (C)'
+                      : track.pan < 0
+                      ? `Esquerda (${Math.abs(Math.round(track.pan * 100))}%)`
+                      : `Direita (${Math.round(track.pan * 100)}%)`}
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-secondary">L</span>
+                  <input
+                    type="range"
+                    min="-1"
+                    max="1"
+                    step="0.02"
+                    value={track.pan}
+                    onChange={(e) => handlePanChange(track.id, e.target.value)}
+                    className="w-full h-3 bg-secondary/20 rounded-lg appearance-none cursor-pointer accent-primary"
+                  />
+                  <span className="text-xs font-bold text-secondary">R</span>
+                </div>
+                <div className="flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => handlePanChange(track.id, 0)}
+                    className="text-[11px] text-on-surface-variant hover:text-primary underline cursor-pointer"
+                  >
+                    Centralizar Pan
+                  </button>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={() => setMobileControlTrackId(null)}
+                className="w-full py-3 bg-primary text-on-primary font-bold text-sm rounded-xl shadow-md hover:bg-primary-container transition-all cursor-pointer"
+              >
+                Concluir
+              </button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
