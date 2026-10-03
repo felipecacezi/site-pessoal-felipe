@@ -1451,6 +1451,8 @@ export default function MultitrackModal({ song, isOpen, onClose, isAdmin }) {
             </div>
           </div>
         </div>
+      )}
+
       {/* Dedicated Mobile Controls Modal (Large Touch Sliders for Volume, Pan, Mute, Solo) */}
       {(() => {
         if (!mobileControlTrackId) return null;
