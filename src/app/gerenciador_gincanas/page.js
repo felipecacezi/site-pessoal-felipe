@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { ref, set, onValue } from 'firebase/database';
@@ -125,8 +126,20 @@ const playScoreSound = (isPositive = true) => {
 
 export default function GerenciadorGincanas() {
   const { theme, toggleTheme, mounted } = useApp();
-  const { user, isApproved } = useAuth();
+  const { user, isApproved, loading: authLoading, hasToolAccess, can } = useAuth();
+  const router = useRouter();
   const fileInputRef = useRef(null);
+
+  // Route protection
+  useEffect(() => {
+    if (!authLoading) {
+      if (!user || !isApproved) {
+        router.push('/login');
+      } else if (!hasToolAccess('gerenciador_gincanas')) {
+        router.push('/restricted');
+      }
+    }
+  }, [user, isApproved, authLoading, router, hasToolAccess]);
 
   // Primary data state
   const [gincanas, setGincanas] = useState({});
@@ -1067,16 +1080,18 @@ export default function GerenciadorGincanas() {
                   <span>🏆 Placar Geral</span>
                 </button>
 
-                <button
-                  onClick={() => setActiveTab('pontuar')}
-                  className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                    activeTab === 'pontuar'
-                      ? 'bg-primary text-on-primary shadow-sm'
-                      : 'text-on-surface-variant hover:text-primary hover:bg-secondary/10'
-                  }`}
-                >
-                  <span>⚡ Lançar Pontos</span>
-                </button>
+                {can('gerenciador_gincanas', 'score') && (
+                  <button
+                    onClick={() => setActiveTab('pontuar')}
+                    className={`flex-1 py-2.5 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                      activeTab === 'pontuar'
+                        ? 'bg-primary text-on-primary shadow-sm'
+                        : 'text-on-surface-variant hover:text-primary hover:bg-secondary/10'
+                    }`}
+                  >
+                    <span>⚡ Lançar Pontos</span>
+                  </button>
+                )}
 
                 <button
                   onClick={() => setActiveTab('equipes')}
@@ -1100,16 +1115,18 @@ export default function GerenciadorGincanas() {
                   <span>📜 Histórico</span>
                 </button>
 
-                <button
-                  onClick={() => setActiveTab('gincanas')}
-                  className={`py-2.5 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                    activeTab === 'gincanas'
-                      ? 'bg-primary text-on-primary shadow-sm'
-                      : 'text-on-surface-variant hover:text-primary hover:bg-secondary/10'
-                  }`}
-                >
-                  <span>⚙️ Config</span>
-                </button>
+                {can('gerenciador_gincanas', 'manage_gincanas') && (
+                  <button
+                    onClick={() => setActiveTab('gincanas')}
+                    className={`py-2.5 px-4 rounded-xl text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                      activeTab === 'gincanas'
+                        ? 'bg-primary text-on-primary shadow-sm'
+                        : 'text-on-surface-variant hover:text-primary hover:bg-secondary/10'
+                    }`}
+                  >
+                    <span>⚙️ Config</span>
+                  </button>
+                )}
               </div>
             )}
 
@@ -1724,18 +1741,22 @@ export default function GerenciadorGincanas() {
                             </button>
 
                             <div className="flex items-center gap-2">
-                              <button
-                                onClick={() => handleOpenEditTeam(team)}
-                                className="px-3 py-1.5 text-xs font-bold text-primary dark:text-[#fcf9f4] border border-secondary/30 rounded-lg hover:bg-secondary/10 transition-colors cursor-pointer"
-                              >
-                                Editar
-                              </button>
-                              <button
-                                onClick={() => setConfirmDeleteTeamId(team.id)}
-                                className="px-3 py-1.5 text-xs font-bold text-red-600 dark:text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer"
-                              >
-                                Excluir
-                              </button>
+                              {can('gerenciador_gincanas', 'manage_gincanas') && (
+                                <button
+                                  onClick={() => handleOpenEditTeam(team)}
+                                  className="px-3 py-1.5 text-xs font-bold text-primary dark:text-[#fcf9f4] border border-secondary/30 rounded-lg hover:bg-secondary/10 transition-colors cursor-pointer"
+                                >
+                                  Editar
+                                </button>
+                              )}
+                              {can('gerenciador_gincanas', 'danger_actions') && (
+                                <button
+                                  onClick={() => setConfirmDeleteTeamId(team.id)}
+                                  className="px-3 py-1.5 text-xs font-bold text-red-600 dark:text-red-400 border border-red-500/20 rounded-lg hover:bg-red-500/10 transition-colors cursor-pointer"
+                                >
+                                  Excluir
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1824,15 +1845,17 @@ export default function GerenciadorGincanas() {
                               {formatTimeAgo(log.timestamp)}
                             </span>
 
-                            <button
-                              onClick={() => setConfirmDeleteLogId(log.id)}
-                              className="p-1.5 text-on-surface-variant/60 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
-                              title="Desfazer lançamento"
-                            >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                              </svg>
-                            </button>
+                            {can('gerenciador_gincanas', 'danger_actions') && (
+                              <button
+                                onClick={() => setConfirmDeleteLogId(log.id)}
+                                className="p-1.5 text-on-surface-variant/60 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer"
+                                title="Desfazer lançamento"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                </svg>
+                              </button>
+                            )}
                           </div>
                         </div>
                       );
@@ -1947,26 +1970,32 @@ export default function GerenciadorGincanas() {
                     </h4>
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                      <button
-                        onClick={handleOpenEditGincana}
-                        className="py-2.5 px-3 rounded-xl border border-secondary/30 text-xs font-bold hover:bg-secondary/10 text-primary dark:text-[#fcf9f4] cursor-pointer"
-                      >
-                        ✏️ Renomear Gincana
-                      </button>
+                      {can('gerenciador_gincanas', 'manage_gincanas') && (
+                        <>
+                          <button
+                            onClick={handleOpenEditGincana}
+                            className="py-2.5 px-3 rounded-xl border border-secondary/30 text-xs font-bold hover:bg-secondary/10 text-primary dark:text-[#fcf9f4] cursor-pointer"
+                          >
+                            ✏️ Renomear Gincana
+                          </button>
 
-                      <button
-                        onClick={handleToggleStatus}
-                        className="py-2.5 px-3 rounded-xl border border-secondary/30 text-xs font-bold hover:bg-secondary/10 text-primary dark:text-[#fcf9f4] cursor-pointer"
-                      >
-                        {activeGincana.status === 'concluida' ? '🔄 Reabrir Gincana' : '🏁 Finalizar Gincana'}
-                      </button>
+                          <button
+                            onClick={handleToggleStatus}
+                            className="py-2.5 px-3 rounded-xl border border-secondary/30 text-xs font-bold hover:bg-secondary/10 text-primary dark:text-[#fcf9f4] cursor-pointer"
+                          >
+                            {activeGincana.status === 'concluida' ? '🔄 Reabrir Gincana' : '🏁 Finalizar Gincana'}
+                          </button>
+                        </>
+                      )}
 
-                      <button
-                        onClick={() => setConfirmResetPoints(true)}
-                        className="py-2.5 px-3 rounded-xl border border-red-500/30 text-xs font-bold text-red-600 hover:bg-red-500/10 cursor-pointer"
-                      >
-                        ⚠️ Zerar Todos os Pontos
-                      </button>
+                      {can('gerenciador_gincanas', 'danger_actions') && (
+                        <button
+                          onClick={() => setConfirmResetPoints(true)}
+                          className="py-2.5 px-3 rounded-xl border border-red-500/30 text-xs font-bold text-red-600 hover:bg-red-500/10 cursor-pointer"
+                        >
+                          ⚠️ Zerar Todos os Pontos
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1992,17 +2021,19 @@ export default function GerenciadorGincanas() {
               <span className="text-[11px]">Placar</span>
             </button>
 
-            <button
-              onClick={() => setActiveTab('pontuar')}
-              className={`flex flex-col items-center justify-center py-2 rounded-xl transition-all cursor-pointer ${
-                activeTab === 'pontuar'
-                  ? 'text-primary dark:text-[#fcf9f4] font-bold bg-primary/10'
-                  : 'text-on-surface-variant font-medium hover:bg-secondary/10'
-              }`}
-            >
-              <span className="text-xl leading-none mb-1">⚡</span>
-              <span className="text-[11px]">Pontuar</span>
-            </button>
+            {can('gerenciador_gincanas', 'score') && (
+              <button
+                onClick={() => setActiveTab('pontuar')}
+                className={`flex flex-col items-center justify-center py-2 rounded-xl transition-all cursor-pointer ${
+                  activeTab === 'pontuar'
+                    ? 'text-primary dark:text-[#fcf9f4] font-bold bg-primary/10'
+                    : 'text-on-surface-variant font-medium hover:bg-secondary/10'
+                }`}
+              >
+                <span className="text-xl leading-none mb-1">⚡</span>
+                <span className="text-[11px]">Pontuar</span>
+              </button>
+            )}
 
             <button
               onClick={() => setActiveTab('equipes')}

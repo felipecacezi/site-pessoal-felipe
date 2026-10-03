@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function RestrictedDashboard() {
-  const { user, isApproved, logout, loading } = useAuth();
+  const { user, isApproved, isAdmin, role, logout, loading, hasToolAccess } = useAuth();
   const router = useRouter();
 
   // Route protection
@@ -26,6 +26,11 @@ export default function RestrictedDashboard() {
 
   if (!user || !isApproved) return null;
 
+  const canAccessSetlist = hasToolAccess('criador_setlist');
+  const canAccessEquipes = hasToolAccess('gerenciador_equipes');
+  const canAccessGincanas = hasToolAccess('gerenciador_gincanas');
+  const canAccessAdmin = isAdmin || hasToolAccess('admin');
+
   return (
     <div className="min-h-screen flex flex-col bg-background dark:bg-[#121210]">
       {/* Header */}
@@ -36,9 +41,26 @@ export default function RestrictedDashboard() {
               Painel
             </span>
             <span className="text-lg font-bold text-primary dark:text-[#fcf9f4]">Área Restrita</span>
+            {isAdmin && (
+              <span className="bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ml-1">
+                Admin
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-4">
+            {isAdmin && (
+              <Link
+                href="/admin"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors shadow-sm"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                </svg>
+                Painel Admin
+              </Link>
+            )}
+
             <div className="flex items-center gap-3">
               <img
                 src={user.photoURL}
@@ -75,88 +97,128 @@ export default function RestrictedDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           
           {/* Tool Card: Setlist Creator */}
-          <Link
-            href="/criador_setlist"
-            className="group bg-white dark:bg-inverse-surface border border-secondary/20 dark:border-secondary/10 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-primary/40 dark:hover:border-secondary/30 transition-all duration-300 flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary dark:text-inverse-primary mb-4 group-hover:scale-105 transition-transform duration-200">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 0v10.5m0-10.5H9m0 0v10.5m0-10.5L19.5 6M9 19.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm10.5-3a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+          {canAccessSetlist && (
+            <Link
+              href="/criador_setlist"
+              className="group bg-white dark:bg-inverse-surface border border-secondary/20 dark:border-secondary/10 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-primary/40 dark:hover:border-secondary/30 transition-all duration-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary dark:text-inverse-primary mb-4 group-hover:scale-105 transition-transform duration-200">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 0v10.5m0-10.5H9m0 0v10.5m0-10.5L19.5 6M9 19.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm10.5-3a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-primary dark:text-[#fcf9f4] group-hover:text-secondary dark:group-hover:text-inverse-primary transition-colors">
+                  Criador de Setlist
+                </h3>
+                <p className="mt-2 text-sm text-on-surface-variant dark:text-[#d1c4bb] leading-relaxed">
+                  Acesse o repertório completo do ministério de louvor, pesquise áudios, abra letras/cifras e monte roteiros de música prontos para enviar no WhatsApp.
+                </p>
+              </div>
+              
+              <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-secondary dark:text-inverse-primary group-hover:text-primary transition-colors">
+                <span>Acessar Módulo</span>
+                <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                 </svg>
               </div>
-              <h3 className="text-lg font-bold text-primary dark:text-[#fcf9f4] group-hover:text-secondary dark:group-hover:text-inverse-primary transition-colors">
-                Criador de Setlist
-              </h3>
-              <p className="mt-2 text-sm text-on-surface-variant dark:text-[#d1c4bb] leading-relaxed">
-                Acesse o repertório completo do ministério de louvor, pesquise áudios, abra letras/cifras e monte roteiros de música prontos para enviar no WhatsApp.
-              </p>
-            </div>
-            
-            <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-secondary dark:text-inverse-primary group-hover:text-primary transition-colors">
-              <span>Acessar Módulo</span>
-              <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
-            </div>
-          </Link>
+            </Link>
+          )}
 
           {/* Tool Card: Gerenciador de Equipes */}
-          <Link
-            href="/gerenciador_equipes"
-            className="group bg-white dark:bg-inverse-surface border border-secondary/20 dark:border-secondary/10 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-primary/40 dark:hover:border-secondary/30 transition-all duration-300 flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary dark:text-inverse-primary mb-4 group-hover:scale-105 transition-transform duration-200">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+          {canAccessEquipes && (
+            <Link
+              href="/gerenciador_equipes"
+              className="group bg-white dark:bg-inverse-surface border border-secondary/20 dark:border-secondary/10 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-primary/40 dark:hover:border-secondary/30 transition-all duration-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary dark:text-inverse-primary mb-4 group-hover:scale-105 transition-transform duration-200">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-primary dark:text-[#fcf9f4] group-hover:text-secondary dark:group-hover:text-inverse-primary transition-colors">
+                  Gerenciador de Equipes
+                </h3>
+                <p className="mt-2 text-sm text-on-surface-variant dark:text-[#d1c4bb] leading-relaxed">
+                  Cadastre e gerencie equipes da igreja e seus líderes. Acesso rápido ao WhatsApp de cada equipe com visual otimizado e botões grandes para celulares.
+                </p>
+              </div>
+              
+              <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-secondary dark:text-inverse-primary group-hover:text-primary transition-colors">
+                <span>Acessar Módulo</span>
+                <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                 </svg>
               </div>
-              <h3 className="text-lg font-bold text-primary dark:text-[#fcf9f4] group-hover:text-secondary dark:group-hover:text-inverse-primary transition-colors">
-                Gerenciador de Equipes
-              </h3>
-              <p className="mt-2 text-sm text-on-surface-variant dark:text-[#d1c4bb] leading-relaxed">
-                Cadastre e gerencie equipes da igreja e seus líderes. Acesso rápido ao WhatsApp de cada equipe com visual otimizado e botões grandes para celulares.
-              </p>
-            </div>
-            
-            <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-secondary dark:text-inverse-primary group-hover:text-primary transition-colors">
-              <span>Acessar Módulo</span>
-              <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
-            </div>
-          </Link>
+            </Link>
+          )}
 
           {/* Tool Card: Gerenciador de Gincanas */}
-          <Link
-            href="/gerenciador_gincanas"
-            className="group bg-white dark:bg-inverse-surface border border-secondary/20 dark:border-secondary/10 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-primary/40 dark:hover:border-secondary/30 transition-all duration-300 flex flex-col justify-between"
-          >
-            <div>
-              <div className="w-12 h-12 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-200">
-                <span className="text-2xl">🏆</span>
+          {canAccessGincanas && (
+            <Link
+              href="/gerenciador_gincanas"
+              className="group bg-white dark:bg-inverse-surface border border-secondary/20 dark:border-secondary/10 rounded-2xl p-6 shadow-sm hover:shadow-md hover:border-primary/40 dark:hover:border-secondary/30 transition-all duration-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="w-12 h-12 bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-200">
+                  <span className="text-2xl">🏆</span>
+                </div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-lg font-bold text-primary dark:text-[#fcf9f4] group-hover:text-secondary dark:group-hover:text-inverse-primary transition-colors">
+                    Gerenciador de Gincanas
+                  </h3>
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full border border-amber-500/20">
+                    Novo
+                  </span>
+                </div>
+                <p className="mt-2 text-sm text-on-surface-variant dark:text-[#d1c4bb] leading-relaxed">
+                  Cadastre gincanas e equipes personalizadas com cores e mascotes. Lance e subtraia pontos com 1 toque, visualize pódio ao vivo e envie o placar no WhatsApp.
+                </p>
               </div>
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-lg font-bold text-primary dark:text-[#fcf9f4] group-hover:text-secondary dark:group-hover:text-inverse-primary transition-colors">
-                  Gerenciador de Gincanas
-                </h3>
-                <span className="px-2 py-0.5 text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-full border border-amber-500/20">
-                  Novo
-                </span>
+              
+              <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-secondary dark:text-inverse-primary group-hover:text-primary transition-colors">
+                <span>Acessar Módulo</span>
+                <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
               </div>
-              <p className="mt-2 text-sm text-on-surface-variant dark:text-[#d1c4bb] leading-relaxed">
-                Cadastre gincanas e equipes personalizadas com cores e mascotes. Lance e subtraia pontos com 1 toque, visualize pódio ao vivo e envie o placar no WhatsApp.
-              </p>
-            </div>
-            
-            <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-secondary dark:text-inverse-primary group-hover:text-primary transition-colors">
-              <span>Acessar Módulo</span>
-              <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-              </svg>
-            </div>
-          </Link>
+            </Link>
+          )}
+
+          {/* Tool Card: Painel de Administração (Apenas para Admins) */}
+          {canAccessAdmin && (
+            <Link
+              href="/admin"
+              className="group bg-red-500/5 hover:bg-red-500/10 dark:bg-red-950/20 dark:hover:bg-red-950/30 border border-red-500/30 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between"
+            >
+              <div>
+                <div className="w-12 h-12 bg-red-500/15 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-200">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                  </svg>
+                </div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="text-lg font-bold text-red-600 dark:text-red-400">
+                    Painel de Administração
+                  </h3>
+                  <span className="px-2 py-0.5 text-[10px] font-bold bg-red-500/20 text-red-600 dark:text-red-400 rounded-full border border-red-500/30 uppercase">
+                    Admin
+                  </span>
+                </div>
+                <p className="mt-2 text-sm text-on-surface-variant dark:text-[#d1c4bb] leading-relaxed">
+                  Gerencie permissões de acesso, aprove novas contas cadastradas e altere os papéis e níveis de acesso (Admin / Basic) dos usuários.
+                </p>
+              </div>
+              
+              <div className="mt-6 flex items-center gap-1.5 text-sm font-bold text-red-600 dark:text-red-400">
+                <span>Gerenciar Acessos</span>
+                <svg className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                </svg>
+              </div>
+            </Link>
+          )}
 
           {/* Placeholder for future tools */}
           <div className="bg-surface-container/30 dark:bg-inverse-surface/20 border border-dashed border-secondary/30 rounded-2xl p-6 flex flex-col items-center justify-center text-center text-on-surface-variant/60 min-h-[220px]">

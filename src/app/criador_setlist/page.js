@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { ref, set, get, onValue } from 'firebase/database';
 import { db } from '../services/firebase';
 import { sortRawDriveFiles } from '../../utils/audio-sorter';
+import MultitrackModal from '../components/MultitrackModal';
 
 const API_KEY = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_API_KEY; 
 const FOLDER_ID = process.env.NEXT_PUBLIC_GOOGLE_DRIVE_FOLDER_ID; 
@@ -75,7 +76,7 @@ const WhatsAppIcon = () => (
 
 export default function SetlistPage() {
   const { lang, toggleLanguage, theme, toggleTheme, t, mounted } = useApp();
-  const { user, isApproved, loading: authLoading } = useAuth();
+  const { user, isApproved, canManageSetlist, isAdmin, role, loading: authLoading, hasToolAccess, can } = useAuth();
   const router = useRouter();
 
   // Repertoire list retrieved from Realtime Database
@@ -96,6 +97,9 @@ export default function SetlistPage() {
   const [sundayShift, setSundayShift] = useState('Manhã');
   const [modalSearch, setModalSearch] = useState('');
   const [selectedSongsSet, setSelectedSongsSet] = useState(new Set());
+  
+  // Multitrack Modal state
+  const [selectedMultitrackSong, setSelectedMultitrackSong] = useState(null);
 
   // String normalization for letter matching
   const strictNormalize = (str) => {
@@ -118,10 +122,14 @@ export default function SetlistPage() {
 
   // Route protection
   useEffect(() => {
-    if (!authLoading && (!user || !isApproved)) {
-      router.push('/login');
+    if (!authLoading) {
+      if (!user || !isApproved) {
+        router.push('/login');
+      } else if (!hasToolAccess('criador_setlist')) {
+        router.push('/restricted');
+      }
     }
-  }, [user, isApproved, authLoading, router]);
+  }, [user, isApproved, authLoading, router, hasToolAccess]);
 
   // Realtime Database subscription to load list
   useEffect(() => {
@@ -438,16 +446,18 @@ export default function SetlistPage() {
                 {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
               </button>
 
-              <button
-                onClick={() => syncGoogleDriveToDb(false)}
-                disabled={syncing}
-                className="p-2.5 border border-secondary/30 dark:border-secondary/50 rounded-lg text-primary dark:text-inverse-primary hover:bg-secondary/10 transition-colors cursor-pointer"
-                title="Sincronizar com Google Drive"
-              >
-                <svg className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
-                </svg>
-              </button>
+              {can('criador_setlist', 'sync_drive') && (
+                <button
+                  onClick={() => syncGoogleDriveToDb(false)}
+                  disabled={syncing}
+                  className="p-2.5 border border-secondary/30 dark:border-secondary/50 rounded-lg text-primary dark:text-inverse-primary hover:bg-secondary/10 transition-colors cursor-pointer"
+                  title="Sincronizar com Google Drive"
+                >
+                  <svg className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                  </svg>
+                </button>
+              )}
 
               <Link
                 href="/restricted"
@@ -459,17 +469,29 @@ export default function SetlistPage() {
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto">
-            <button
-              onClick={() => {
-                setModalStep(1);
-                setModalSearch('');
-                setModalOpen(true);
-              }}
-              className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-on-primary font-semibold hover:bg-primary-container hover:text-on-primary-container rounded-lg transition-colors shadow-sm cursor-pointer whitespace-nowrap"
-            >
-              <PlusIcon />
-              <span>{t('new_setlist')}</span>
-            </button>
+            {can('criador_setlist', 'manage_setlist') ? (
+              <button
+                onClick={() => {
+                  setModalStep(1);
+                  setModalSearch('');
+                  setModalOpen(true);
+                }}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-on-primary font-semibold hover:bg-primary-container hover:text-on-primary-container rounded-lg transition-colors shadow-sm cursor-pointer whitespace-nowrap"
+              >
+                <PlusIcon />
+                <span>{t('new_setlist')}</span>
+              </button>
+            ) : (
+              <div
+                title="Apenas Administradores, Ministros e Líderes de Louvor podem criar novos setlists."
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 bg-surface-container dark:bg-inverse-surface border border-secondary/20 text-on-surface-variant/60 rounded-lg text-xs font-semibold cursor-not-allowed whitespace-nowrap"
+              >
+                <svg className="w-4 h-4 opacity-70" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                </svg>
+                <span>{t('new_setlist')} (Restrito)</span>
+              </div>
+            )}
 
             <div className="relative w-full sm:w-72">
               <input
@@ -568,6 +590,18 @@ export default function SetlistPage() {
                     </div>
 
                     <div className="flex items-center justify-end gap-2 mt-2 md:mt-0">
+                      {/* Multitrack Player Button */}
+                      {can('criador_setlist', 'multitracks') && (
+                        <button
+                          onClick={() => setSelectedMultitrackSong(item)}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 border border-primary/30 hover:border-primary bg-primary/10 hover:bg-primary text-primary hover:text-on-primary rounded-lg text-xs font-bold transition-all shadow-sm cursor-pointer"
+                          title="Abrir Multitrack / Mixer de Instrumentos (MinIO)"
+                        >
+                          <span className="text-sm">🎛️</span>
+                          <span className="hidden lg:inline">Multitrack</span>
+                        </button>
+                      )}
+
                       {item.docUrl ? (
                         <a
                           href={item.docUrl}
@@ -637,7 +671,7 @@ export default function SetlistPage() {
       )}
 
       {/* Playlist Modal */}
-      {modalOpen && (
+      {modalOpen && canManageSetlist && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-3 sm:p-4">
           <div className="bg-surface-bright dark:bg-inverse-surface rounded-xl border border-secondary/30 shadow-2xl w-full max-w-lg max-h-[90vh] flex flex-col overflow-hidden transition-all duration-300">
             
@@ -785,6 +819,16 @@ export default function SetlistPage() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Multitrack Stems Player & Mixer Modal (MinIO) */}
+      {selectedMultitrackSong && (
+        <MultitrackModal
+          song={selectedMultitrackSong}
+          isOpen={!!selectedMultitrackSong}
+          onClose={() => setSelectedMultitrackSong(null)}
+          isAdmin={isAdmin}
+        />
       )}
     </div>
   );

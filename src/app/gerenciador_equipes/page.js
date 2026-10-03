@@ -8,15 +8,19 @@ import { ref, set, push, remove, onValue } from 'firebase/database';
 import { db } from '../services/firebase';
 
 export default function GerenciadorEquipes() {
-  const { user, isApproved, loading: authLoading } = useAuth();
+  const { user, isApproved, loading: authLoading, hasToolAccess, can } = useAuth();
   const router = useRouter();
 
   // Route protection
   useEffect(() => {
-    if (!authLoading && (!user || !isApproved)) {
-      router.push('/login');
+    if (!authLoading) {
+      if (!user || !isApproved) {
+        router.push('/login');
+      } else if (!hasToolAccess('gerenciador_equipes')) {
+        router.push('/restricted');
+      }
     }
-  }, [user, isApproved, authLoading, router]);
+  }, [user, isApproved, authLoading, router, hasToolAccess]);
 
   // State Management
   const [equipes, setEquipes] = useState([]);
@@ -1686,7 +1690,9 @@ export default function GerenciadorEquipes() {
             {activeTab === 'equipes' && (
               <div className="space-y-6">
                 <div className="flex flex-col gap-4">
-                  <button onClick={openCreateTeamForm} className="w-full bg-primary text-white font-extrabold text-xl py-4.5 px-6 rounded-2xl shadow-md cursor-pointer active:scale-[0.99]">+ Cadastrar Nova Equipe</button>
+                  {can('gerenciador_equipes', 'manage_teams') && (
+                    <button onClick={openCreateTeamForm} className="w-full bg-primary text-white font-extrabold text-xl py-4.5 px-6 rounded-2xl shadow-md cursor-pointer active:scale-[0.99]">+ Cadastrar Nova Equipe</button>
+                  )}
                   <div className="bg-surface-container-low dark:bg-inverse-surface/40 border border-secondary/20 dark:border-secondary/10 rounded-xl p-4 flex items-center justify-between text-sm">
                     <div className="flex flex-col">
                       <span className="font-semibold text-on-surface-variant dark:text-[#d1c4bb]">Total de equipes cadastradas:</span>
@@ -1713,7 +1719,11 @@ export default function GerenciadorEquipes() {
                             <div className="space-y-1 w-full">
                               <div className="flex justify-between items-center">
                                 <h3 className="text-xl font-extrabold text-primary dark:text-[#fcf9f4]">{team.name}</h3>
-                                <button onClick={() => openMembersManager(team.id)} className="text-xs font-extrabold bg-primary/10 text-primary dark:text-inverse-primary px-3 py-1.5 rounded-xl cursor-pointer">Membros ({membersCount})</button>
+                                {can('gerenciador_equipes', 'manage_members') ? (
+                                  <button onClick={() => openMembersManager(team.id)} className="text-xs font-extrabold bg-primary/10 text-primary dark:text-inverse-primary px-3 py-1.5 rounded-xl cursor-pointer">Membros ({membersCount})</button>
+                                ) : (
+                                  <span className="text-xs font-bold bg-secondary/10 text-on-surface-variant px-3 py-1.5 rounded-xl">Membros ({membersCount})</span>
+                                )}
                               </div>
                               <p className="text-base text-on-surface-variant dark:text-[#d1c4bb]">Líder: <strong className="font-semibold text-primary">{team.leaderName}</strong></p>
                               {team.functions && team.functions.length > 0 && (
@@ -1727,10 +1737,16 @@ export default function GerenciadorEquipes() {
                             </div>
                           </div>
                           <a href={getWhatsappLink(team.whatsapp)} target="_blank" rel="noopener noreferrer" className="w-full bg-[#E8F8EF] dark:bg-[#143d26] text-[#0f5b33] dark:text-[#88f5b8] font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-2 border text-sm">Conversar com Líder</a>
-                          <div className="flex gap-3 pt-1">
-                            <button onClick={() => openEditTeamForm(team)} className="flex-1 bg-surface-container hover:bg-surface-variant text-primary font-bold py-3 rounded-xl border text-sm cursor-pointer">Editar</button>
-                            <button onClick={() => setDeleteConfirmId(team.id)} className="flex-1 bg-[#ffdad6] text-[#ba1a1a] font-bold py-3 rounded-xl border text-sm cursor-pointer">Excluir</button>
-                          </div>
+                          {(can('gerenciador_equipes', 'manage_teams') || can('gerenciador_equipes', 'delete')) && (
+                            <div className="flex gap-3 pt-1">
+                              {can('gerenciador_equipes', 'manage_teams') && (
+                                <button onClick={() => openEditTeamForm(team)} className="flex-1 bg-surface-container hover:bg-surface-variant text-primary font-bold py-3 rounded-xl border text-sm cursor-pointer">Editar</button>
+                              )}
+                              {can('gerenciador_equipes', 'delete') && (
+                                <button onClick={() => setDeleteConfirmId(team.id)} className="flex-1 bg-[#ffdad6] text-[#ba1a1a] font-bold py-3 rounded-xl border text-sm cursor-pointer">Excluir</button>
+                              )}
+                            </div>
+                          )}
                         </div>
                       );
                     })
@@ -1745,9 +1761,15 @@ export default function GerenciadorEquipes() {
                 
                 {/* Scale Top Action Buttons */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                  <button onClick={openCreateEscalaForm} className="bg-primary text-white font-extrabold text-base py-3.5 px-4 rounded-xl shadow-sm cursor-pointer text-center">Configurar Escala</button>
-                  <button onClick={openLoteEscalaForm} className="bg-secondary text-white font-extrabold text-base py-3.5 px-4 rounded-xl shadow-sm cursor-pointer text-center">Gerar em Lote</button>
-                  <button onClick={() => { setIsDeleteLoteOpen(true); setDeleteLoteError(''); }} className="bg-[#ffdad6] text-[#ba1a1a] border border-[#ba1a1a]/20 font-extrabold text-base py-3.5 px-4 rounded-xl cursor-pointer text-center">Apagar em Lote</button>
+                  {can('gerenciador_equipes', 'manage_escalas') && (
+                    <>
+                      <button onClick={openCreateEscalaForm} className="bg-primary text-white font-extrabold text-base py-3.5 px-4 rounded-xl shadow-sm cursor-pointer text-center">Configurar Escala</button>
+                      <button onClick={openLoteEscalaForm} className="bg-secondary text-white font-extrabold text-base py-3.5 px-4 rounded-xl shadow-sm cursor-pointer text-center">Gerar em Lote</button>
+                    </>
+                  )}
+                  {can('gerenciador_equipes', 'delete') && (
+                    <button onClick={() => { setIsDeleteLoteOpen(true); setDeleteLoteError(''); }} className="bg-[#ffdad6] text-[#ba1a1a] border border-[#ba1a1a]/20 font-extrabold text-base py-3.5 px-4 rounded-xl cursor-pointer text-center">Apagar em Lote</button>
+                  )}
                   <button onClick={() => { setIsPrintModalOpen(true); setPrintTeamId(''); setPrintStartDate(''); setPrintEndDate(''); }} className="bg-white dark:bg-inverse-surface text-primary border border-primary/30 dark:text-[#fcf9f4] font-extrabold text-base py-3.5 px-4 rounded-xl cursor-pointer text-center">Exportar PDF</button>
                 </div>
 

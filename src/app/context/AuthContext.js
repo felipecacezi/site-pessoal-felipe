@@ -10,45 +10,73 @@ import {
   updateProfile
 } from 'firebase/auth';
 import { ref, set, onValue } from 'firebase/database';
+import { getDefaultRolePermissions, SYSTEM_TOOLS, SYSTEM_ROLES } from '../constants/permissions';
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [role, setRole] = useState(null);
   const [isApproved, setIsApproved] = useState(false);
+  const [rolePermissions, setRolePermissions] = useState(getDefaultRolePermissions());
   const [loading, setLoading] = useState(true);
   const [authError, setAuthError] = useState(null);
 
+  const isAdmin = role === 'admin';
+
+  // Listener global de configurações de roles
+  useEffect(() => {
+    const rolesConfigRef = ref(db, 'system_config/roles_permissions');
+    const unsubscribeRoles = onValue(rolesConfigRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        // Assegura que as roles do sistema existam mesmo que mescladas com criadas
+        const defaults = getDefaultRolePermissions();
+        setRolePermissions({ ...defaults, ...data });
+      } else {
+        setRolePermissions(getDefaultRolePermissions());
+      }
+    });
+
+    return () => unsubscribeRoles();
+  }, []);
+
+  // Listener de Auth e User Profile
   useEffect(() => {
     let unsubscribeDatabase = () => {};
 
     const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
-      unsubscribeDatabase(); // Clear previous listener
+      unsubscribeDatabase();
       setAuthError(null);
 
       if (currentUser) {
         setUser(currentUser);
         
-        // Listen to user document in Realtime Database under users/{uid}
         const userRef = ref(db, `users/${currentUser.uid}`);
         
         unsubscribeDatabase = onValue(userRef, async (snapshot) => {
           const data = snapshot.val();
           if (data) {
+            setUserProfile(data);
             setIsApproved(data.approved === true);
+            setRole(data.role || 'basic');
           } else {
-            // First time logging in or registering, ensure database record exists
+            const userRole = 'basic';
             const userData = {
               uid: currentUser.uid,
               displayName: currentUser.displayName || currentUser.email.split('@')[0],
               email: currentUser.email,
               photoURL: currentUser.photoURL || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(currentUser.email)}`,
-              approved: false, // Pending by default
+              approved: false,
+              role: userRole,
               createdAt: new Date().toISOString()
             };
             try {
               await set(userRef, userData);
+              setUserProfile(userData);
               setIsApproved(false);
+              setRole(userRole);
             } catch (err) {
               console.error("Failed to write user doc:", err);
               setAuthError(`Erro de Escrita no Banco: ${err.message}`);
@@ -57,12 +85,14 @@ export function AuthProvider({ children }) {
           setLoading(false);
         }, (error) => {
           console.error("Realtime Database error:", error);
-          setAuthError(`Erro de Leitura (Regras do Banco): ${error.message}`);
+          setAuthError(`Erro de Leitura: ${error.message}`);
           setLoading(false);
         });
 
       } else {
         setUser(null);
+        setUserProfile(null);
+        setRole(null);
         setIsApproved(false);
         setLoading(false);
       }
@@ -73,6 +103,87 @@ export function AuthProvider({ children }) {
       unsubscribeDatabase();
     };
   }, []);
+
+  // Lista dinâmica de todas as roles conhecidas (padrão + criadas pelo usuário)
+  const availableRoles = React.useMemo(() => {
+    const rolesMap = new Map();
+    // 1. Roles padrão
+    SYSTEM_ROLES.forEach(r => rolesMap.set(r.id, { ...r }));
+    
+    // 2. Roles cadastradas no Firebase
+    if (rolePermissions) {
+      Object.entries(rolePermissions).forEach(([rId, rData]) => {
+        if (!rolesMap.has(rId)) {
+          rolesMap.set(rId, {
+            id: rId,
+            label: rData.label || rId,
+            description: rData.description || 'Role personalizada',
+            isSystem: false
+          });
+        } else {
+          // Atualiza rótulo se customizado
+          const existing = rolesMap.get(rId);
+          rolesMap.set(rId, {
+            ...existing,
+            label: rData.label || existing.label,
+            description: rData.description || existing.description
+          });
+        }
+      });
+    }
+
+    return Array.from(rolesMap.values());
+  }, [rolePermissions]);
+
+  // Checa se o usuário tem acesso à ferramenta
+  const hasToolAccess = (toolId) => {
+    if (!user || !isApproved) return false;
+    if (isAdmin) return true;
+
+    // 1. Prioridade: Exceção individual explicitamente configurada no perfil do usuário
+    if (userProfile?.allowedTools && typeof userProfile.allowedTools[toolId] === 'boolean') {
+      return userProfile.allowedTools[toolId];
+    }
+
+    // 2. Regra da Role
+    const currentRole = role || 'basic';
+    const currentRoleConfig = rolePermissions[currentRole];
+    if (currentRoleConfig?.tools && typeof currentRoleConfig.tools[toolId] === 'boolean') {
+      return currentRoleConfig.tools[toolId];
+    }
+
+    // 3. Fallback dos padrões
+    const defaults = getDefaultRolePermissions();
+    return defaults[currentRole]?.tools?.[toolId] ?? false;
+  };
+
+  // Checa se o usuário tem privilégio para executar uma ação em uma ferramenta
+  const can = (toolId, actionId) => {
+    if (!user || !isApproved) return false;
+    if (isAdmin) return true;
+
+    if (!hasToolAccess(toolId)) return false;
+
+    const actionKey = `${toolId}:${actionId}`;
+
+    // 1. Prioridade: Exceção individual de ação no perfil do usuário
+    if (userProfile?.allowedActions && typeof userProfile.allowedActions[actionKey] === 'boolean') {
+      return userProfile.allowedActions[actionKey];
+    }
+
+    // 2. Regra da Role
+    const currentRole = role || 'basic';
+    const currentRoleConfig = rolePermissions[currentRole];
+    if (currentRoleConfig?.actions && typeof currentRoleConfig.actions[actionKey] === 'boolean') {
+      return currentRoleConfig.actions[actionKey];
+    }
+
+    // 3. Fallback dos padrões
+    const defaults = getDefaultRolePermissions();
+    return defaults[currentRole]?.actions?.[actionKey] ?? false;
+  };
+
+  const canManageSetlist = can('criador_setlist', 'manage_setlist');
 
   const loginWithEmail = async (email, password) => {
     setLoading(true);
@@ -97,16 +208,13 @@ export function AuthProvider({ children }) {
     setLoading(true);
     setAuthError(null);
     try {
-      // 1. Create Auth credentials
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       
-      // 2. Update Auth display profile
       await updateProfile(userCredential.user, {
         displayName: name,
         photoURL: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`
       });
 
-      // 3. Write record to Database in pending approval state
       const userRef = ref(db, `users/${userCredential.user.uid}`);
       const userData = {
         uid: userCredential.user.uid,
@@ -114,10 +222,13 @@ export function AuthProvider({ children }) {
         email: email,
         photoURL: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(name)}`,
         approved: false,
+        role: 'basic',
         createdAt: new Date().toISOString()
       };
       await set(userRef, userData);
+      setUserProfile(userData);
       setIsApproved(false);
+      setRole('basic');
       setLoading(false);
     } catch (error) {
       console.error("Registration failed:", error);
@@ -146,7 +257,23 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isApproved, loginWithEmail, registerWithEmail, logout, loading, authError }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      userProfile,
+      role, 
+      isAdmin, 
+      isApproved, 
+      rolePermissions,
+      availableRoles,
+      hasToolAccess,
+      can,
+      canManageSetlist, 
+      loginWithEmail, 
+      registerWithEmail, 
+      logout, 
+      loading, 
+      authError 
+    }}>
       {children}
     </AuthContext.Provider>
   );
