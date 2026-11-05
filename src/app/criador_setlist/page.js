@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useApp } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { ref, set, get, onValue } from 'firebase/database';
+import { ref, set, get, onValue, push } from 'firebase/database';
 import { db } from '../services/firebase';
 import { sortRawDriveFiles } from '../../utils/audio-sorter';
 import MultitrackModal from '../components/MultitrackModal';
@@ -387,8 +387,23 @@ export default function SetlistPage() {
     return msg.trim();
   };
 
-  const handleWhatsAppSend = () => {
+  const handleWhatsAppSend = async () => {
     const finalMsg = getWhatsAppMessage();
+    const selectedFiles = allDbSongs.filter(item => selectedSongsSet.has(item.id));
+    try {
+      const setlistRef = push(ref(db, 'setlists'));
+      await set(setlistRef, {
+        createdBy: user?.uid || null,
+        createdByEmail: user?.email || null,
+        date: setlistDate,
+        sundayShift: isSundaySelected() ? sundayShift : null,
+        songIds: selectedFiles.map(item => item.id),
+        createdAt: new Date().toISOString()
+      });
+    } catch (err) {
+      console.error('Erro ao gravar setlist:', err);
+      return;
+    }
     const encodedMessage = encodeURIComponent(finalMsg);
     window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
   };
